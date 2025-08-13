@@ -1,13 +1,13 @@
 const Gpio = require('onoff').Gpio;
-const GPIO_01 = 571;
+const GPIO_04 = 516;
 
 // Configure pin for reads
-let pin = new Gpio(GPIO_01, 'in', 'both');
-console.log("Switch service started")
+let pin = new Gpio(GPIO_04, 'in', 'both');
+console.log('Switch service started')
 
 // Read initial switch state
 let state = pin.readSync();
-console.log('Switch is ' + state ? 'ON' : 'OFF');
+console.log('Switch is', state ? 'ON' : 'OFF');
 
 // Sync initial state with Arete
 // TODO
@@ -17,13 +17,14 @@ pin.watch((err, state) => {
     if (err) {
         throw err;
     }
-    console.log('Switch is now ' + state ? 'ON' : 'OFF');
+    console.log('Switch is now', state ? 'ON' : 'OFF');
 
     // Sync new state with Arete
     // TODO
 });
 
 process.on('SIGINT', _ => {
-    console.log("Switch service terminating");
+    console.log();
+    console.log('Switch service terminating');
     pin.unexport();
 });
