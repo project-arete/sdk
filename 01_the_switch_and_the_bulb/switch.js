@@ -7,7 +7,7 @@ console.log('Switch service started')
 
 // Read initial switch state
 let state = pin.readSync();
-console.log('Switch is', state ? 'ON' : 'OFF');
+console.log('Switch is initially', state ? 'ON' : 'OFF');
 
 // Sync initial state with Arete
 // TODO
