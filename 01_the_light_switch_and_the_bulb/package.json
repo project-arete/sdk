@@ -1,0 +1,10 @@
+{
+  "name": "01_the_light_switch_and_the_bulb",
+  "version": "0.1.0",
+  "description": "A light switch and a bulb, coordinated with Arete",
+  "main": "index.js",
+  "repository": "https://github.com/project-arete/examples.git",
+  "author": "David Rauschenbach",
+  "license": "MIT",
+  "private": false
+}
