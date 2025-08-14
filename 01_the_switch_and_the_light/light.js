@@ -10,14 +10,14 @@ let desired_state = Math.random() < 0.5; // TODO read from Arete
 console.log('Desired state is initially', desired_state ? 'ON' : 'OFF');
 
 // Set initial desired state
-pin.write(desired_state ^ 1, err => {
+pin.write(desired_state ? Gpio.HIGH : Gpio.LOW, err => {
     if (err) {
         throw err;
     }
 });
 
 // Detect future changes in desired state
-setTimeout(on_change, 1000); // TODO watch the Arete control plane instead of faking changes with a timer
+setInterval(on_change, 1000); // TODO watch the Arete control plane instead of faking changes with a timer
 
 // Register shutdown handling
 process.on('SIGINT', _ => {
@@ -33,7 +33,7 @@ function on_change() {
         return;
     }
     console.log('New desired state is', desired_state ? 'ON' : 'OFF');
-    pin.write(desired_state ^ 1, err => {
+    pin.writeSync(desired_state ? Gpio.HIGH : Gpio.LOW, err => {
         if (err) {
             throw err;
         }
