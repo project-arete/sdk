@@ -1,4 +1,4 @@
-# The Switch and The Bulb
+# The Switch and The Light
 
 ![PCB's](readme_intro.png)
 
