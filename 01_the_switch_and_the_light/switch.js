@@ -1,8 +1,8 @@
 const Gpio = require('onoff').Gpio;
-const GPIO_04 = 516;
+const GPIO04 = 516;
 
 // Configure pin for reads
-let pin = new Gpio(GPIO_04, 'in', 'both');
+let pin = new Gpio(GPIO04, 'in', 'both', {debounceTimeout: 10});
 console.log('Switch service started')
 
 // Read initial switch state
@@ -23,6 +23,7 @@ pin.watch((err, state) => {
     // TODO
 });
 
+// Register shutdown handling
 process.on('SIGINT', _ => {
     console.log();
     console.log('Switch service terminating');
