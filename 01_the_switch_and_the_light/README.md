@@ -33,7 +33,7 @@ Switch is now ON
 ### Run the light service
 
 ```shell
-$ sudo node light.js 
+$ node light.js 
 Light service started
 Light is initially ON
 Light is now OFF
