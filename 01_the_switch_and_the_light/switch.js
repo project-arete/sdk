@@ -1,9 +1,8 @@
 const Gpio = require('onoff').Gpio;
 const GPIO04 = 516;
 
-// Configure pin for reads
+// Configure pin for input
 let pin = new Gpio(GPIO04, 'in', 'both', {debounceTimeout: 10});
-console.log('Switch service started')
 
 // Read initial switch state
 let state = pin.readSync();
@@ -11,6 +10,9 @@ console.log('Switch is initially', state ? 'ON' : 'OFF');
 
 // Sync initial state with Arete
 // TODO
+
+// Startup complete
+console.log('Switch service started')
 
 // Detect future changes in state, and sync new switch state with Arete
 pin.watch((err, state) => {
