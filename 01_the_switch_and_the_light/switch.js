@@ -1,4 +1,5 @@
 const Gpio = require('onoff').Gpio;
+const CnsClient = require('./cns').Client;
 const GPIO04 = 516;
 
 // Configure pin for input
