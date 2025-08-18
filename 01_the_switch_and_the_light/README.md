@@ -48,6 +48,7 @@ The switch service needs to run as root in order to access GPIO edge triggers.
 ```shell
 $ sudo node switch.js 
 Switch service started
+Connected to Arete control plane
 Switch is initially ON
 Switch is now OFF
 Switch is now ON
@@ -59,6 +60,7 @@ Switch is now ON
 ```shell
 $ node light.js 
 Light service started
+Connected to Arete control plane
 Light is initially ON
 Light is now OFF
 Light is now ON
