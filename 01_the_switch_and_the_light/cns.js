@@ -1,6 +1,8 @@
 // cns.js - CNS Web SDK
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
+const WebSocket = require('ws');
+
 /**
  * CNS Web SDK namespace.
  */
@@ -539,7 +541,7 @@ function match(str, filter) {
 
 // Exports
 
-return {
+module.exports = {
   Client: Client
 };
 

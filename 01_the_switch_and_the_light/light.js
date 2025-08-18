@@ -5,6 +5,12 @@ const GPIO23 = 535;
 // Configure pin for output
 let pin = new Gpio(GPIO23, 'out');
 
+// Connect to Arete control plane
+let client = new CnsClient({protocol:'wss:', host:'dashboard.test.cns.dev', port:443});
+client.on('open', () => {
+    console.log('Connected to Arete control plane');
+});
+
 // Read initial desired state
 let desired_state = Math.random() < 0.5; // TODO read from Arete
 console.log('Desired state is initially', desired_state ? 'ON' : 'OFF');
