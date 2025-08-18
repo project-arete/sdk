@@ -9,6 +9,30 @@ Pi 4.
 * A Light Service reads the desired state from the Arete control plane, and tries to realize it as "actual state"
   by setting a GPIO pin on or off.
 
+```mermaid
+graph LR;
+
+switch_service --> control_plane;
+control_plane --> light_service;
+
+subgraph switch[Switch]
+gpio_04[GPIO 04];
+switch_service[Switch Service];
+gpio_04 --> switch_service;
+end
+
+subgraph cloud[Cloud <small>api.padi.io</small>]
+control_plane[Control Plane];
+end
+
+subgraph light[Light]
+direction LR;
+light_service[Light Service];
+led[GPIO 23 LED];
+light_service --> led;
+end
+```
+
 ## Building
 
 ```shell
