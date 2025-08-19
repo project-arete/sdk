@@ -9,6 +9,29 @@ Pi 4.
 * A Light Service reads the desired state from the Arete control plane, and tries to realize it as "actual state"
   by setting a GPIO pin on or off.
 
+```mermaid
+graph LR;
+
+switch_service --> control_plane;
+control_plane --> light_service;
+
+subgraph switch[Switch]
+gpio_04[GPIO];
+switch_service[Service];
+gpio_04 --> switch_service;
+end
+
+subgraph cloud[Cloud <small>api.padi.io</small>]
+control_plane[Control Plane];
+end
+
+subgraph light[Light]
+light_service[Service];
+led[GPIO];
+light_service --> led;
+end
+```
+
 ## Building
 
 ```shell
@@ -24,6 +47,7 @@ The switch service needs to run as root in order to access GPIO edge triggers.
 ```shell
 $ sudo node switch.js 
 Switch service started
+Connected to Arete control plane
 Switch is initially ON
 Switch is now OFF
 Switch is now ON
@@ -35,6 +59,7 @@ Switch is now ON
 ```shell
 $ node light.js 
 Light service started
+Connected to Arete control plane
 Light is initially ON
 Light is now OFF
 Light is now ON

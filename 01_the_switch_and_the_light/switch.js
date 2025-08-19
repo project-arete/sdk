@@ -1,8 +1,15 @@
 const Gpio = require('onoff').Gpio;
+const CnsClient = require('./cns').Client;
 const GPIO04 = 516;
 
 // Configure pin for input
 let pin = new Gpio(GPIO04, 'in', 'both', {debounceTimeout: 10});
+
+// Connect to Arete control plane
+let client = new CnsClient({protocol:'wss:', host:'dashboard.test.cns.dev', port:443});
+client.on('open', () => {
+    console.log('Connected to Arete control plane');
+});
 
 // Read initial switch state
 let state = pin.readSync();

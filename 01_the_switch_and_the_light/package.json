@@ -8,6 +8,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "onoff": "^6.0.3"
+    "onoff": "^6.0.3",
+    "ws": "^8.18.3"
   }
 }
