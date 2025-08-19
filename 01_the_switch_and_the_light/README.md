@@ -16,7 +16,7 @@ switch_service --> control_plane;
 control_plane --> light_service;
 
 subgraph switch[Switch]
-gpio_04[GPIO 04];
+gpio_04[GPIO];
 switch_service[Service];
 gpio_04 --> switch_service;
 end
@@ -27,7 +27,7 @@ end
 
 subgraph light[Light]
 light_service[Service];
-led[GPIO 23];
+led[GPIO];
 light_service --> led;
 end
 ```
