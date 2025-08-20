@@ -188,6 +188,11 @@ export class Client extends Emitter {
     };
 
     this.open();
+
+    process.on('SIGINT', _ => {
+      this.close();
+    });
+
   }
 
   /**
