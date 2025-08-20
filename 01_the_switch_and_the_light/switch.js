@@ -37,5 +37,6 @@ pin.watch((err, state) => {
 process.on('SIGINT', _ => {
     console.log();
     console.log('Switch service terminating');
+    client.close();
     pin.unexport();
 });

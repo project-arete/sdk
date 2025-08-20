@@ -7,6 +7,7 @@
   "author": "David Rauschenbach",
   "license": "MIT",
   "private": false,
+  "type": "module",
   "dependencies": {
     "onoff": "^6.0.3",
     "ws": "^8.18.3"

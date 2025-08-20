@@ -33,6 +33,7 @@ setInterval(on_change, 1000); // TODO watch the Arete control plane instead of f
 process.on('SIGINT', _ => {
     console.log();
     console.log('Light service terminating');
+    client.close();
     pin.unexport();
 });
 
