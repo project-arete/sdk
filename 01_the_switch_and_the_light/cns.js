@@ -1,12 +1,7 @@
 // cns.js - CNS Web SDK
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
-const WebSocket = require('ws');
-
-/**
- * CNS Web SDK namespace.
- */
-const cns = (function() {
+import WebSocket from 'ws';
 
 /**
  * Socket open error.
@@ -135,7 +130,7 @@ class Emitter {
  * @emits close
  * @emits error
  */
-class Client extends Emitter {
+export class Client extends Emitter {
 
   /**
    * Options passed to constructor.
@@ -538,11 +533,3 @@ function match(str, filter) {
   const esc = (s) => s.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
   return new RegExp('^' + filter.split('*').map(esc).join('.*') + '$', 'i').test(str);
 }
-
-// Exports
-
-module.exports = {
-  Client: Client
-};
-
-}());

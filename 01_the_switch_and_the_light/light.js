@@ -1,12 +1,13 @@
-const Gpio = require('onoff').Gpio;
-const CnsClient = require('./cns').Client;
+import { Gpio } from 'onoff';
+import { Client } from './cns.js';
+
 const GPIO23 = 535;
 
 // Configure pin for output
 let pin = new Gpio(GPIO23, 'out');
 
 // Connect to Arete control plane
-let client = new CnsClient({protocol:'wss:', host:'dashboard.test.cns.dev', port:443});
+let client = new Client({protocol:'wss:', host:'dashboard.test.cns.dev', port:443});
 client.on('open', () => {
     console.log('Connected to Arete control plane');
 });
