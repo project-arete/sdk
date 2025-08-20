@@ -2,8 +2,8 @@
 
 ![PCB's](readme_intro.png)
 
-This example consists of an IoT system containing 2 components: a switch, and a light, both controller by a Raspberry
-Pi 4.
+This example consists of an IoT system containing 2 components: a switch, and a light, each controller by their own
+Raspberry Pi 4B.
 
 * A Switch Service reads the state of the GPIO4 pin, and conveys it to the Arete control plane as a "desired state".
 * A Light Service reads the desired state from the Arete control plane, and tries to realize it as "actual state"
