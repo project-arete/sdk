@@ -17,7 +17,7 @@ let state = pin.readSync();
 console.log('Switch is initially', state ? 'ON' : 'OFF');
 
 // Sync initial state with Arete
-client.put(DESIRED_STATE_KEY, state ? "1" : "0");
+client.put(DESIRED_STATE_KEY, state ? '1' : '0');
 
 // Startup complete
 console.log('Switch service started')
@@ -30,7 +30,7 @@ pin.watch((err, state) => {
     console.log('Switch is now', state ? 'ON' : 'OFF');
 
     // Sync new state with Arete
-    client.put(DESIRED_STATE_KEY, state ? "1" : "0");
+    client.put(DESIRED_STATE_KEY, state ? '1' : '0');
 });
 
 // Register shutdown handling
