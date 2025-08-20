@@ -215,6 +215,24 @@ export class Client extends Emitter {
   }
 
   /**
+   * Require a connection
+   * @method
+   */
+  async waitForOpen(timeout = 5000) {
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms))
+    };
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      if (this.isOpen()) {
+        return;
+      }
+      await sleep(50);
+    }
+    throw 'Failed to connect within timeout';
+  }
+
+  /**
    * Is communication channel open?
    * @method
    * @returns {boolean} Returns true if open.
