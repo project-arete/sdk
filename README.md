@@ -6,7 +6,7 @@
 
 ## Development Environment
 
-Install Raspberry Pi OS (64-bit), the port of Debian Bookwork with Raspberry Pi Desktop, using
+Install Raspberry Pi OS (64-bit), the port of Debian Bookworm with Raspberry Pi Desktop, using
 [Raspberry Pi Imager](https://www.raspberrypi.com/software/). Then:
 
 ```shell

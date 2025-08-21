@@ -12,25 +12,18 @@ let client = new Client({protocol:'wss:', host:'dashboard.test.cns.dev', port:44
 await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
 
-// Read initial switch state
+// Read initial switch state, and sync it with Arete
 let state = pin.readSync();
+client.put(DESIRED_STATE_KEY, state ? '1' : '0');
 console.log('Switch is initially', state ? 'ON' : 'OFF');
 
-// Sync initial state with Arete
-client.put(DESIRED_STATE_KEY, state ? '1' : '0');
-
-// Startup complete
-console.log('Switch service started')
-
-// Detect future changes in state, and sync new switch state with Arete
+// Detect future changes in switch state, and sync it with Arete
 pin.watch((err, state) => {
     if (err) {
         throw err;
     }
-    console.log('Switch is now', state ? 'ON' : 'OFF');
-
-    // Sync new state with Arete
     client.put(DESIRED_STATE_KEY, state ? '1' : '0');
+    console.log('Switch is now', state ? 'ON' : 'OFF');
 });
 
 // Register shutdown handling
@@ -39,3 +32,6 @@ process.on('SIGINT', _ => {
     console.log('Switch service terminating');
     pin.unexport();
 });
+
+// Startup complete
+console.log('Switch service started')
