@@ -1,22 +1,42 @@
 use std::collections::HashMap;
 use std::net::TcpStream;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Mutex;
 use serde_json::Value;
+use strum_macros::{AsRefStr, Display};
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{Message, WebSocket};
+use super::Error;
+
+#[derive(AsRefStr, Clone, Debug, Display)]
+pub enum Format {
+    #[strum(serialize = "json")]
+    Json,
+}
 
 pub struct Connection {
     socket: WebSocket<MaybeTlsStream<TcpStream>>,
     next_transaction_id: AtomicU64,
+    cache: Mutex<HashMap<String, Value>>,
 }
 
 impl Connection {
     pub(crate) fn new(socket: WebSocket<MaybeTlsStream<TcpStream>>) -> Self {
         let next_transaction_id = AtomicU64::default();
-        Self{socket, next_transaction_id}
+        let cache = Mutex::new(HashMap::new());
+        Self{socket, next_transaction_id, cache}
     }
 
-    pub fn send(&mut self, format: &str, cmd: &str, args: &[&str]) -> anyhow::Result<()> {
+    pub fn keys(&self) -> Result<Vec<String>, Error> {
+        let mut vec = vec![];
+        let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+        for key in cache.keys() {
+            vec.push(key.clone());
+        }
+        Ok(vec)
+    }
+
+    pub fn send(&mut self, format: Format, cmd: &str, args: &[&str]) -> Result<(), Error> {
         let mut cmd = cmd.to_string();
         for arg in args {
             cmd = format!("{cmd} \"{arg}\"");
@@ -33,7 +53,7 @@ impl Connection {
         self.send_message(message)
     }
 
-    fn send_message(&mut self, message: Message) -> anyhow::Result<()> {
+    fn send_message(&mut self, message: Message) -> Result<(), Error> {
         self.socket.send(message)?;
         Ok(())
     }
