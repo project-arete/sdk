@@ -16,6 +16,7 @@ name = "arete-sdk"
 version = "0.1.1"
 dependencies = [
  "rustls",
+ "serde",
  "serde_json",
  "strum_macros",
  "tungstenite",
