@@ -10,4 +10,5 @@ license = "MIT"
 
 [dependencies]
 anyhow = "1.0"
-tungstenite = "0.26"
+tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+rustls = { version = "0.23.31", features = ["ring"] }
