@@ -27,6 +27,15 @@ impl Connection {
         Self{socket, next_transaction_id, cache}
     }
 
+    pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
+        let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+        let value = match cache.get(key) {
+            Some(value) => Some(value.clone()),
+            None => default_value,
+        };
+        Ok(value)
+    }
+
     pub fn keys(&self) -> Result<Vec<String>, Error> {
         let mut vec = vec![];
         let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
