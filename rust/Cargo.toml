@@ -12,3 +12,4 @@ license = "MIT"
 anyhow = "1.0"
 tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 rustls = { version = "0.23.31", features = ["ring"] }
+serde_json = "1.0"
