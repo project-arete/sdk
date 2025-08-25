@@ -1,5 +1,5 @@
 import { Gpio } from 'onoff';
-import { Client } from './cns.js';
+import { Client } from '../../index.js';
 
 const GPIO23 = 535;
 const DESIRED_STATE_KEY = 'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState';

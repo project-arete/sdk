@@ -1,4 +1,4 @@
-// cns.js - CNS Web SDK
+// The Project Arete SDK for NodeJS
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
 import WebSocket from 'ws';
