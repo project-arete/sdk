@@ -1,6 +1,9 @@
 # Project Arete SDK Changelog
 
 ## [Unreleased]
+### Added
+- [#16](https://github.com/project-arete/sdk/issues/16) Rust: Provide an SDK for Rust
+
 ### Changed
 - [#14](https://github.com/project-arete/sdk/issues/14) Reorganize repo as a multi-language SDK with examples
 

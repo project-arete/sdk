@@ -372,7 +372,6 @@ export class Client extends Emitter {
       const data = JSON.parse(e.data);
 
       const transaction = data.transaction;
-      const response = data.response;
 
       if (transaction !== undefined) {
         const request = this.#requests[transaction];
