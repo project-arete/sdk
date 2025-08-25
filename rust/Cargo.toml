@@ -1,0 +1,13 @@
+[package]
+name = "arete-sdk"
+description = "Project Arete SDK for Rust"
+keywords = ["padi", "arete", "smart-buildings", "iot"]
+categories = ["network-programming", "api-bindings"]
+version = "0.1.1"
+homepage = "https://padi.io"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+anyhow = "1.0"
+tungstenite = "0.26"
