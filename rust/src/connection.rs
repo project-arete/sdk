@@ -54,16 +54,7 @@ impl Connection {
                 if let Message::Text(ref message) = message {
                     let payload: Cache = serde_json::from_slice(message.as_bytes()).unwrap();
                     if let Ok(mut cache) = cache_2.lock() {
-                        if !payload.stats.started.is_empty() {
-                            cache.stats = payload.stats.clone();
-                        }
-                        if !payload.version.is_empty() {
-                            cache.version = payload.version.clone();
-                        }
-                        // TODO call a merge fn
-                        for (k, v) in payload.keys.iter() {
-                            cache.keys.insert(k.to_string(), v.clone());
-                        }
+                        Self::merge(&mut cache, &payload);
                     }
                 }
             }
@@ -77,7 +68,7 @@ impl Connection {
     }
 
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
-        let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+        let cache = self.cache.lock()?;
         let value = match cache.keys.get(key) {
             Some(value) => Some(value.clone()),
             None => default_value,
@@ -87,11 +78,19 @@ impl Connection {
 
     pub fn keys(&self) -> Result<Vec<String>, Error> {
         let mut vec = vec![];
-        let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+        let cache = self.cache.lock()?;
         for (key, _) in cache.keys.iter() {
             vec.push(key.clone());
         }
         Ok(vec)
+    }
+
+    fn merge(target: &mut Cache, source: &Cache) {
+        target.stats = source.stats.clone();
+        target.version = source.version.clone();
+        for (k, v) in source.keys.iter() {
+            target.keys.insert(k.to_string(), v.clone());
+        }
     }
 
     pub fn send(&mut self, format: Format, cmd: &str, args: &[&str]) -> Result<(), Error> {
@@ -118,25 +117,26 @@ impl Connection {
     }
 
     pub fn stats(&self) -> Result<Stats, Error> {
-        let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+        let cache = self.cache.lock()?;
         Ok(cache.stats.clone())
     }
 
     pub fn version(&self) -> Result<String, Error> {
-        let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+        let cache = self.cache.lock()?;
         Ok(cache.version.clone())
     }
 
     pub fn wait_for_open(&self, timeout: Duration) -> Result<(), Error> {
         let start_time = SystemTime::now();
+        let sleep_for = Duration::from_millis(100);
         while SystemTime::now().duration_since(start_time)? < timeout {
             {
-                let cache = self.cache.lock().map_err(|e| Error::Lock(e.to_string()))?;
+                let cache = self.cache.lock()?;
                 if !cache.version.is_empty() {
                     return Ok(());
                 }
             }
-            std::thread::sleep(Duration::from_millis(100));
+            std::thread::sleep(sleep_for);
         }
         Err(Error::Timeout("Timed out waiting for open".to_string()))
     }
