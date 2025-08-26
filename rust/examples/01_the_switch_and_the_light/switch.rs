@@ -27,8 +27,8 @@ pub fn main() {
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
     let state = pin.request(line_request_flags, 0, "arete-sdk-01-switch").unwrap().get_value().unwrap() > 0;
-    eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
     conn.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
+    eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
     // Startup complete
     eprintln!("Switch service started");
