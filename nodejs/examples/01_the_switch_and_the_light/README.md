@@ -32,6 +32,16 @@ light_service --> led;
 end
 ```
 
+## Development Environment
+
+Install Raspberry Pi OS (64-bit), the port of Debian Bookworm with Raspberry Pi Desktop, using
+[Raspberry Pi Imager](https://www.raspberrypi.com/software/). Then:
+
+```shell
+$ sudo apt install nodejs npm
+$ sudo apt --fix-broken --fix-missing install
+```
+
 ## Building
 
 ```shell
@@ -46,9 +56,9 @@ The switch service needs to run as root in order to access GPIO edge triggers.
 
 ```shell
 $ sudo node switch.js 
-Switch service started
 Connected to Arete control plane
 Switch is initially ON
+Switch service started
 Switch is now OFF
 Switch is now ON
 ...
@@ -58,9 +68,8 @@ Switch is now ON
 
 ```shell
 $ node light.js 
-Light service started
 Connected to Arete control plane
-Light is initially ON
+Light service started
 Light is now OFF
 Light is now ON
 ...
