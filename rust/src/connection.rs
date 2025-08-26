@@ -1,13 +1,15 @@
 use super::{Error, Stats};
 use serde::Deserialize;
 use serde_json::Value;
-use std::collections::HashMap;
-use std::net::TcpStream;
-use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicU64, Ordering},
-};
 use std::time::{Duration, SystemTime};
+use std::{
+    collections::HashMap,
+    net::TcpStream,
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
+    },
+};
 use strum_macros::{AsRefStr, Display};
 use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
 
@@ -32,7 +34,7 @@ struct Cache {
 
 impl Connection {
     pub(crate) fn new(socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>) -> Self {
-        let next_transaction_id = AtomicU64::default();
+        let next_transaction_id = AtomicU64::new(1);
         let cache = Arc::new(Mutex::new(Cache::default()));
 
         // Spawn a thread to handle incoming messages
@@ -40,16 +42,12 @@ impl Connection {
         let cache_2 = cache.clone();
         std::thread::spawn(move || {
             loop {
-                let maybe_message = {
+                let message = {
                     if let Ok(mut socket) = socket_2.lock() {
-                        Some(socket.read().unwrap())
+                        socket.read().unwrap()
                     } else {
-                        None
+                        continue;
                     }
-                };
-                let message = match maybe_message {
-                    Some(message) => message,
-                    _ => continue,
                 };
                 if let Message::Text(ref message) = message {
                     let payload: Cache = serde_json::from_slice(message.as_bytes()).unwrap();
@@ -93,7 +91,12 @@ impl Connection {
         }
     }
 
-    pub fn send(&mut self, format: Format, cmd: &str, args: &[&str]) -> Result<(), Error> {
+    pub fn put(&mut self, key: &str, value: &str) -> Result<(), Error> {
+        let args = vec![format!("\"{key}\""), value.to_string()];
+        self.send(Format::Json, "put", &args)
+    }
+
+    pub fn send(&mut self, format: Format, cmd: &str, args: &[String]) -> Result<(), Error> {
         let mut cmd = cmd.to_string();
         for arg in args {
             cmd = format!("{cmd} \"{arg}\"");

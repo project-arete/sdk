@@ -1,5 +1,4 @@
-use std::sync::PoisonError;
-use std::time::SystemTimeError;
+use std::{sync::PoisonError, time::SystemTimeError};
 
 #[derive(Debug)]
 pub enum Error {
