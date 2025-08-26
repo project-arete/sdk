@@ -65,15 +65,7 @@ Switch is now ON
 
 ### Run the light service
 
-```shell
-$ node light.js 
-Light service started
-Connected to Arete control plane
-Light is initially ON
-Light is now OFF
-Light is now ON
-...
-```
+TODO
 
 ## What if my Raspberry Pi is not a 4B?
 
