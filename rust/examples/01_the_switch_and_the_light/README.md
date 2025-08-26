@@ -66,29 +66,3 @@ Switch is now ON
 ### Run the light service
 
 TODO
-
-## What if my Raspberry Pi is not a 4B?
-
-You'll find this line in `switch.js`:
-
-```javascript
-const GPIO04 = 516;
-```
-
-And this line in `light.js`:
-
-```javascript
-const GPIO23 = 535;
-```
-
-If you're not running on a Raspberry Pi 4B, then 516 and 535 will be the wrong values for you. Look up the correct
-values with:
-
-```shell
-$ cat /sys/kernel/debug/gpio
-gpiochip0: GPIOs 512-569, parent: platform/fe200000.gpio, pinctrl-bcm2711:
-...
- gpio-516 (GPIO4               )
-...
- gpio-535 (GPIO23              )
-```
