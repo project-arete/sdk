@@ -12,7 +12,7 @@ pub fn main() {
 
 #[cfg(target_os = "linux")]
 pub fn main() {
-    use gpio_cdev::{Chip, EventRequestFlags, LineRequestFlags};
+    use gpio_cdev::{Chip, EventRequestFlags, EventType, LineRequestFlags};
     use std::time::Duration;
 
     // Configure pin
