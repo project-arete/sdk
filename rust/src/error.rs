@@ -21,6 +21,12 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
+        Error::Io(e.to_string())
+    }
+}
+
 impl From<SystemTimeError> for Error {
     fn from(e: SystemTimeError) -> Self {
         Error::Default(e.to_string())

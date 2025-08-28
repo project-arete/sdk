@@ -1,6 +1,7 @@
 use super::{Error, Stats};
 use serde::Deserialize;
 use serde_json::Value;
+use std::io::ErrorKind;
 use std::time::{Duration, SystemTime};
 use std::{
     collections::HashMap,
@@ -42,10 +43,27 @@ impl Connection {
         let cache_2 = cache.clone();
         std::thread::spawn(move || {
             loop {
-                let message = {
+                let maybe_message = {
                     if let Ok(mut socket) = socket_2.lock() {
-                        socket.read().unwrap()
+                        match socket.read() {
+                            Ok(message) => Some(message),
+                            Err(e) => match e {
+                                tungstenite::Error::Io(ref e)
+                                    if e.kind() == ErrorKind::WouldBlock =>
+                                {
+                                    None
+                                }
+                                _ => panic!("{e:?}"),
+                            },
+                        }
                     } else {
+                        continue;
+                    }
+                };
+                let message = match maybe_message {
+                    Some(message) => message,
+                    None => {
+                        std::thread::sleep(Duration::from_millis(20));
                         continue;
                     }
                 };
