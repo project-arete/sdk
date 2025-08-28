@@ -1,5 +1,6 @@
 #![allow(unused)]
 
+const APPNAME: &str = "arete-sdk-01-switch";
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO04: u32 = 4;
 const DESIRED_STATE_KEY: &str = "cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState";
@@ -11,7 +12,7 @@ pub fn main() {
 
 #[cfg(target_os = "linux")]
 pub fn main() {
-    use gpio_cdev::{Chip, LineRequestFlags};
+    use gpio_cdev::{Chip, EventRequestFlags, EventType, LineRequestFlags};
     use std::time::Duration;
 
     // Configure pin
@@ -26,7 +27,7 @@ pub fn main() {
 
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
-    let state = pin.request(line_request_flags, 0, "arete-sdk-01-switch").unwrap().get_value().unwrap() > 0;
+    let state = pin.request(line_request_flags.clone(), 0, APPNAME).unwrap().get_value().unwrap() > 0;
     conn.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
@@ -34,5 +35,11 @@ pub fn main() {
     eprintln!("Switch service started");
 
     // Detect future changes in switch state, and sync it with Arete
-    // TODO
+    let mut pin_events = pin.events(line_request_flags, EventRequestFlags::BOTH_EDGES, APPNAME).unwrap();
+    loop {
+        let event = pin_events.get_event().unwrap();
+        let state = event.event_type() == EventType::FallingEdge;
+        conn.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
+        eprintln!("Switch is now {}", if state { "ON" } else { "OFF" });
+    }
 }
