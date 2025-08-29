@@ -50,7 +50,7 @@ $ pip install -r requirements.txt --user
 The switch service needs to run as root in order to access GPIO edge triggers.
 
 ```shell
-$ sudo python switch.py 
+$ sudo python3 switch.py 
 Connected to Arete control plane
 Switch is initially ON
 Switch service started
@@ -62,7 +62,7 @@ Switch is now ON
 ### Run the light service
 
 ```shell
-$ python light.py 
+$ python3 light.py 
 Connected to Arete control plane
 Light service started
 Light is now OFF
