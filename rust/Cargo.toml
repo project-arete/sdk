@@ -1,6 +1,6 @@
 [package]
 name = "arete-sdk"
-description = "Project Arete SDK for Rust"
+description = "The Project Arete SDK"
 keywords = ["padi", "arete", "smart-buildings", "iot"]
 categories = ["network-programming", "api-bindings"]
 version = "0.1.1"
