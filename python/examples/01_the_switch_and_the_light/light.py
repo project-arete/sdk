@@ -1,7 +1,13 @@
+import atexit
 import sys
+import time
+import RPi.GPIO as GPIO
+
+GPIO23 = 23
 
 # Configure pin for output
-# TODO
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(GPIO23, GPIO.OUT)
 
 # Connect to Arete control plane
 # TODO
@@ -10,7 +16,11 @@ import sys
 # TODO
 
 # Register shutdown handling
-# TODO
+@atexit.register
+def cleanup():
+    GPIO.cleanup()
 
 # Startup complete
 sys.stderr.write('Light service started\n')
+while True:
+    time.sleep(0.1)
