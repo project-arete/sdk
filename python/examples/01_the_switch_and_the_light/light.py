@@ -11,6 +11,7 @@ GPIO.setup(GPIO23, GPIO.OUT)
 
 # Connect to Arete control plane
 # TODO
+# sys.stderr.write('Connected to Arete control plane\n')
 
 # Detect future changes in desired state, and actualize it
 # TODO
