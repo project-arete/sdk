@@ -35,13 +35,8 @@ end
 ## Development Environment
 
 Install Raspberry Pi OS (64-bit), the port of Debian Bookworm with Raspberry Pi Desktop, using
-[Raspberry Pi Imager](https://www.raspberrypi.com/software/).
-
-## Building
-
-```shell
-$ pip install -r requirements.txt --user
-```
+[Raspberry Pi Imager](https://www.raspberrypi.com/software/). Python is pre-installed, as well as the `RPi.GPIO` module that is
+imported by the examples.
 
 ## Running
 
