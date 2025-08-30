@@ -3,6 +3,8 @@ import sys
 import time
 import RPi.GPIO as GPIO
 from client import Client
+from threading import Thread
+from time import sleep
 
 GPIO04 = 4
 
@@ -20,11 +22,19 @@ state = GPIO.input(GPIO04) == 0
 sys.stderr.write('Switch is initially {}\n'.format('ON' if state else 'OFF'))
 
 # Detect future changes in switch state, and sync it with Arete
-def on_change(channel):
+last_state = state
+def detect_change(channel):
+    global last_state
     state = GPIO.input(GPIO04) == 0
-    #client.put(DESIRED_STATE_KEY, state ? '1' : '0');
-    sys.stderr.write('Switch is now {}\n'.format('ON' if state else 'OFF'))
-GPIO.add_event_detect(GPIO04, GPIO.BOTH, callback=on_change)
+    if state != last_state:
+        #client.put(DESIRED_STATE_KEY, state ? '1' : '0');
+        sys.stderr.write('Switch is now {}\n'.format('ON' if state else 'OFF'))
+        last_state = state
+    else:
+        sleep(0.1)
+change_detector = Thread(target=detect_change, args=(client, ))
+change_detector.daemon = True
+change_detector.start()
 
 # Register shutdown handling
 @atexit.register
