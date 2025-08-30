@@ -1,6 +1,6 @@
 {
   "name": "arete-sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The Project Arete SDK",
   "main": "index.js",
   "repository": "https://github.com/project-arete/sdk.git",
