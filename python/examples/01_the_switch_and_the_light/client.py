@@ -1,5 +1,6 @@
 from threading import Thread
 from websockets.sync.client import connect
+import json
 import ssl
 
 class Client:
@@ -7,6 +8,7 @@ class Client:
 
     def __init__(self, websocket):
         self.websocket = websocket
+        self.cache = {}
 
     @staticmethod
     def connect(url):
@@ -23,6 +25,27 @@ class Client:
 
         return self
 
+    @classmethod
+    def get(self, key):
+        return self.cache['keys'][key]
+
+    @classmethod
+    def keys(self):
+        return self.cache['keys']
+
+    @classmethod
+    def put(self, key, value):
+        pass # TODO
+
+    @classmethod
+    def stats(self):
+        return self.cache['stats']
+
+    @classmethod
+    def version(self):
+        return self.cache['version']
+
 def receive_messages(self):
     for message in self.websocket:
-        pass #print(message)
+        data = json.loads(message)
+        self.cache.update(data)
