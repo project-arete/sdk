@@ -43,12 +43,6 @@ $ source env/bin/activate
 $ python3 -m pip install -r requirements.txt
 ```
 
-## Building
-
-```shell
-$ python3 -m pip install -r requirements.txt
-```
-
 ## Running
 
 ### Run the switch service
@@ -56,7 +50,7 @@ $ python3 -m pip install -r requirements.txt
 The switch service needs to run as root in order to access GPIO edge triggers.
 
 ```shell
-$ sudo python3 switch.py 
+$ python3 switch.py 
 Connected to Arete control plane
 Switch is initially ON
 Switch service started
