@@ -2,6 +2,7 @@ import atexit
 import sys
 import time
 import RPi.GPIO as GPIO
+from client import Client
 
 GPIO04 = 4
 
@@ -10,8 +11,8 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO04, GPIO.IN)
 
 # Connect to Arete control plane
-# TODO
-# sys.stderr.write('Connected to Arete control plane\n')
+client = Client.connect('wss://dashboard.test.cns.dev:443')
+sys.stderr.write('Connected to Arete control plane\n')
 
 # Read initial switch state, and sync it with Arete
 state = GPIO.input(GPIO04) == 0
