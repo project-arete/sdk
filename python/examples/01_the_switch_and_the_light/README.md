@@ -35,8 +35,7 @@ end
 ## Development Environment
 
 Install Raspberry Pi OS (64-bit), the port of Debian Bookworm with Raspberry Pi Desktop, using
-[Raspberry Pi Imager](https://www.raspberrypi.com/software/). Python is pre-installed, as well as the `RPi.GPIO` module that is
-imported by the examples. Then install additional dependencies:
+[Raspberry Pi Imager](https://www.raspberrypi.com/software/). Python is pre-installed. Then install additional dependencies:
 
 ```shell
 $ python3 -m venv env
