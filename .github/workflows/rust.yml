@@ -13,6 +13,7 @@ env:
 
 jobs:
   static_analysis:
+    name: Static Analysis
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     steps:
@@ -22,13 +23,18 @@ jobs:
       - name: cargo-fmt
         run: |
           set -euxo pipefail
+          cd rust
           rustup component add rustfmt 
           rustfmt --version
           cargo fmt --all -- --check
       - name: cargo-clippy
-        run: rustup component add clippy && cargo clippy --all-targets --all-features -- --no-deps -D warnings
+        run: |
+          cd rust
+          rustup component add clippy
+          cargo clippy --all-targets --all-features -- --no-deps -D warnings
 
   build:
+    name: Build
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' }}
     steps:
@@ -36,14 +42,18 @@ jobs:
       - name: rustup
         run: rustup default $RUST_VERSION
       - name: build
-        run: make
+        run: |
+          cd rust
+          cargo build --examples
       - name: test
         run: |
           set -euxo pipefail
+          cd rust
           cargo test --tests --all-features -- --show-output --test-threads=1
 
 
   publish:
+    name: Publish
     runs-on: ubuntu-latest
     if: startsWith(github.event.ref, 'refs/tags/')
     steps:
@@ -53,4 +63,7 @@ jobs:
       - name: publish
         env:
           CRATES_API_TOKEN: ${{ secrets.CRATES_API_TOKEN }}
-        run: cargo publish --token $CRATES_API_TOKEN
+        run: |
+          set -euxo pipefail
+          cd rust
+          cargo publish --token $CRATES_API_TOKEN
