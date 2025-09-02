@@ -30,7 +30,6 @@ const RETRY = 5000;
  * @class
  */
 class Emitter {
-
   /**
    * Event handler bindings.
    * @private
@@ -47,8 +46,7 @@ class Emitter {
   on(event, handler) {
     const handlers = this.#handlers[event];
 
-    if (handlers === undefined)
-      this.#handlers[event] = [handler];
+    if (handlers === undefined) this.#handlers[event] = [handler];
     else handlers.push(handler);
 
     return this;
@@ -79,12 +77,10 @@ class Emitter {
    */
   off(event, handler) {
     // Remove all handlers?
-    if (event === undefined)
-      this.#handlers = {};
+    if (event === undefined) this.#handlers = {};
     else {
       // Remove all event handlers?
-      if (handler === undefined)
-        delete this.#handlers[event];
+      if (handler === undefined) delete this.#handlers[event];
       else {
         // Remove specific handler
         const handlers = this.#handlers[event];
@@ -92,11 +88,9 @@ class Emitter {
         if (handlers !== undefined) {
           const fns = [];
 
-          for (const fn of handlers)
-            if (fn !== handler) fns.push(fn);
+          for (const fn of handlers) if (fn !== handler) fns.push(fn);
 
-          if (fns.length === 0)
-            delete this.#handlers[event];
+          if (fns.length === 0) delete this.#handlers[event];
           else this.#handlers[event] = fns;
         }
       }
@@ -131,7 +125,6 @@ class Emitter {
  * @emits error
  */
 export class Client extends Emitter {
-
   /**
    * Options passed to constructor.
    * @private
@@ -180,19 +173,19 @@ export class Client extends Emitter {
     super();
 
     this.#options = {
-      protocol: options.protocol || ((location.protocol === 'https:')?'wss:':'ws:'),
+      protocol:
+        options.protocol || (location.protocol === 'https:' ? 'wss:' : 'ws:'),
       host: options.host || location.hostname,
-      port: options.port || location.port
-//      username: options.username || '',
-//      password: options.password || ''
+      port: options.port || location.port,
+      //      username: options.username || '',
+      //      password: options.password || ''
     };
 
     this.open();
 
-    process.on('SIGINT', _ => {
+    process.on('SIGINT', (_) => {
       this.close();
     });
-
   }
 
   /**
@@ -206,10 +199,10 @@ export class Client extends Emitter {
       const prot = this.#options.protocol;
       const host = this.#options.host;
       const port = this.#options.port;
-//      const username = this.#options.username;
-//      const password = this.#options.password;
+      //      const username = this.#options.username;
+      //      const password = this.#options.password;
 
-      const uri = prot + '//' + host + (port?(':' + port):'');
+      const uri = prot + '//' + host + (port ? ':' + port : '');
       this.#socket = new WebSocket(uri);
 
       this.#socket.onopen = this.#onopen.bind(this);
@@ -225,8 +218,8 @@ export class Client extends Emitter {
    */
   async waitForOpen(timeout = 5000) {
     function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms))
-    };
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
     const startTime = Date.now();
     while (Date.now() - startTime < timeout) {
       if (this.isOpen()) {
@@ -243,8 +236,9 @@ export class Client extends Emitter {
    * @returns {boolean} Returns true if open.
    */
   isOpen() {
-    return (this.#socket !== undefined &&
-      this.#socket.readyState === WebSocket.OPEN);
+    return (
+      this.#socket !== undefined && this.#socket.readyState === WebSocket.OPEN
+    );
   }
 
   /**
@@ -280,7 +274,7 @@ export class Client extends Emitter {
    */
   get(key, def = null) {
     const value = this.keys[key];
-    return (value === undefined)?def:value;
+    return value === undefined ? def : value;
   }
 
   /**
@@ -310,8 +304,7 @@ export class Client extends Emitter {
     const result = {};
 
     for (const key in keys) {
-      if (compare(key, filters))
-        result[key] = keys[key];
+      if (compare(key, filters)) result[key] = keys[key];
     }
     return result;
   }
@@ -347,8 +340,7 @@ export class Client extends Emitter {
    * @method
    */
   close() {
-    if (this.#socket !== undefined)
-      this.#socket.close();
+    if (this.#socket !== undefined) this.#socket.close();
   }
 
   /**
@@ -385,11 +377,10 @@ export class Client extends Emitter {
 
       merge(this.#cache, data);
 
-      if (this.#updates++ === 0)
-        this.emit('open', e);
+      if (this.#updates++ === 0) this.emit('open', e);
 
       this.emit('update', data);
-    } catch(e) {
+    } catch (e) {
       this.emit('error', e);
     }
   }
@@ -442,7 +433,7 @@ export class Client extends Emitter {
     this.#cache = {
       version: '',
       stats: {},
-      keys: {}
+      keys: {},
     };
   }
 
@@ -461,25 +452,25 @@ export class Client extends Emitter {
     const self = this;
 
     return new Promise((resolve, reject) => {
-      if (!self.isOpen())
-        return reject(new Error(E_SOCKET));
+      if (!self.isOpen()) return reject(new Error(E_SOCKET));
 
-      for (const arg of args)
-        cmd += ' "' + arg + '"';
+      for (const arg of args) cmd += ' "' + arg + '"';
 
       const transaction = self.#transaction++;
 
       self.#requests[transaction] = {
         resolve: resolve,
-        reject: reject
+        reject: reject,
       };
 
-      self.#socket.send(JSON.stringify({
-        transaction: transaction,
-        format: format,
-        command: cmd
-      }));
-    })
+      self.#socket.send(
+        JSON.stringify({
+          transaction: transaction,
+          format: format,
+          command: cmd,
+        }),
+      );
+    });
   }
 }
 
@@ -511,8 +502,7 @@ function merge(target, source) {
         delete target[key];
         break;
       case '[object Object]':
-        if (getType(target[key]) !== type ||
-          Object.keys(value).length === 0)
+        if (getType(target[key]) !== type || Object.keys(value).length === 0)
           target[key] = {};
 
         merge(target[key], value);
@@ -553,5 +543,8 @@ function compare(key, filters) {
  */
 function match(str, filter) {
   const esc = (s) => s.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, '\\$1');
-  return new RegExp('^' + filter.split('*').map(esc).join('.*') + '$', 'i').test(str);
+  return new RegExp(
+    '^' + filter.split('*').map(esc).join('.*') + '$',
+    'i',
+  ).test(str);
 }

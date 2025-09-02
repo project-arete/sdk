@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "description": "A switch and a light, coordinated by Arete",
   "repository": "https://github.com/project-arete/examples.git",
-  "license": "MIT",
+  "license": "(MIT or Apache-2.0)",
   "private": false,
   "type": "module",
   "dependencies": {
