@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - [#30](https://github.com/project-arete/sdk/issues/30) (Rust) Publish tag releases to crates.io and enable static analysis during CI
+- [#29](https://github.com/project-arete/sdk/issues/29) (NodeJS) Publish tag releases to npmjs.com and enable static analysis during CI
 
 ## [0.1.2] - 2025-08-30
 ### Added
