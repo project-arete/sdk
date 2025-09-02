@@ -1,5 +1,9 @@
 # Project Arete SDK Changelog
 
+## [Unreleased]
+### Added
+- [#30](https://github.com/project-arete/sdk/issues/30) (Rust) Publish tag releases to crates.io
+
 ## [0.1.2] - 2025-08-30
 ### Added
 - [#21](https://github.com/project-arete/sdk/issues/21) (Python) Provide an SDK for Python
