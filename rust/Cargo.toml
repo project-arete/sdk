@@ -1,6 +1,7 @@
 [package]
 name = "arete-sdk"
 description = "The Project Arete SDK"
+authors = ["Arete Developers <arete@padi.io>"]
 keywords = ["padi", "arete", "smart-buildings", "iot"]
 categories = ["network-programming", "api-bindings"]
 version = "0.1.2"

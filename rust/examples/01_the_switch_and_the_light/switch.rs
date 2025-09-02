@@ -22,12 +22,18 @@ pub fn main() {
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
     let (mut conn, _res) = arete_sdk::connect("wss://dashboard.test.cns.dev:443").unwrap();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS)).unwrap();
+    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+        .unwrap();
     eprintln!("Connected to Arete control plane");
 
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
-    let state = pin.request(line_request_flags.clone(), 0, APPNAME).unwrap().get_value().unwrap() > 0;
+    let state = pin
+        .request(line_request_flags.clone(), 0, APPNAME)
+        .unwrap()
+        .get_value()
+        .unwrap()
+        > 0;
     conn.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
@@ -35,7 +41,9 @@ pub fn main() {
     eprintln!("Switch service started");
 
     // Detect future changes in switch state, and sync it with Arete
-    let mut pin_events = pin.events(line_request_flags, EventRequestFlags::BOTH_EDGES, APPNAME).unwrap();
+    let mut pin_events = pin
+        .events(line_request_flags, EventRequestFlags::BOTH_EDGES, APPNAME)
+        .unwrap();
     loop {
         let event = pin_events.get_event().unwrap();
         let state = event.event_type() == EventType::FallingEdge;

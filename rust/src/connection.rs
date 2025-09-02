@@ -48,11 +48,7 @@ impl Connection {
                         match socket.read() {
                             Ok(message) => Some(message),
                             Err(e) => match e {
-                                tungstenite::Error::Io(ref e)
-                                    if e.kind() == ErrorKind::WouldBlock =>
-                                {
-                                    None
-                                }
+                                tungstenite::Error::Io(ref e) if e.kind() == ErrorKind::WouldBlock => None,
                                 _ => panic!("{e:?}"),
                             },
                         }
