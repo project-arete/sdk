@@ -3,8 +3,11 @@
   "version": "0.1.2",
   "description": "The Project Arete SDK",
   "main": "index.js",
-  "repository": "https://github.com/project-arete/sdk.git",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/project-arete/sdk.git"
+  },
+  "license": "(MIT or Apache-2.0)",
   "private": false,
   "type": "module",
   "dependencies": {
