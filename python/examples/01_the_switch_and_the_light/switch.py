@@ -17,9 +17,9 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO04, GPIO.IN)
 
 # Connect to Arete control plane
-ssl_context = ssl.SSLContext()
-ssl_context.verify_mode = ssl.CERT_NONE
+ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_CLIENT)
 ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
 client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 sys.stderr.write('Connected to Arete control plane\n')
 
