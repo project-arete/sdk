@@ -1,12 +1,12 @@
+use super::Error;
 use uuid::Uuid;
-use super::{Error};
 
 #[cfg(target_os = "macos")]
 #[allow(unused)]
 pub fn get_system_id() -> Result<Uuid, Error> {
-    use std::str::FromStr;
     use serde::Deserialize;
     use std::process::Command;
+    use std::str::FromStr;
 
     #[derive(Deserialize)]
     struct HardwareOverview {
@@ -25,13 +25,18 @@ pub fn get_system_id() -> Result<Uuid, Error> {
         .arg("-json")
         .output()
         .map_err(|e| Error::Default("Failed invoking system_profiler to lookup SPHardwareDataType".to_string()))?;
-    let wrapper = serde_json::from_slice::<Wrapper>(&output.stdout).map_err(|e| Error::Serialization("Failed parsing system_profiler SPHardwareDataType lookup response".to_string()))?;
+    let wrapper = serde_json::from_slice::<Wrapper>(&output.stdout).map_err(|e| {
+        Error::Serialization("Failed parsing system_profiler SPHardwareDataType lookup response".to_string())
+    })?;
     match wrapper.sp_hardware_data_type.first() {
-        None => Err(Error::Serialization("Failed finding a hardware datatype in system_profiler SPHardwareDataType lookup".to_string())),
+        None => Err(Error::Serialization(
+            "Failed finding a hardware datatype in system_profiler SPHardwareDataType lookup".to_string(),
+        )),
         Some(hardware_overview) => {
-            let id = Uuid::from_str(&hardware_overview.platform_uuid).map_err(|e| Error::Serialization("Failed parsing uuid".to_string()))?;
+            let id = Uuid::from_str(&hardware_overview.platform_uuid)
+                .map_err(|e| Error::Serialization("Failed parsing uuid".to_string()))?;
             Ok(id)
-        },
+        }
     }
 }
 
@@ -48,13 +53,15 @@ pub fn get_system_id() -> Result<Uuid, Error> {
 #[cfg(target_os = "linux")]
 fn get_model() -> Result<String, Error> {
     const MODEL_FILENAME: &str = "/sys/firmware/devicetree/base/model";
-    std::fs::read_to_string(MODEL_FILENAME).map_err(|e| Error::Io(format!("Failed reading {MODEL_FILENAME} to obtain model ({e:?})")))
+    std::fs::read_to_string(MODEL_FILENAME)
+        .map_err(|e| Error::Io(format!("Failed reading {MODEL_FILENAME} to obtain model ({e:?})")))
 }
 
 #[cfg(target_os = "linux")]
 fn get_serial_number() -> Result<String, Error> {
     const SN_FILENAME: &str = "/sys/firmware/devicetree/base/serial-number";
-    std::fs::read_to_string(SN_FILENAME).map_err(|e| Error::Io(format!("Failed reading {SN_FILENAME} to obtain serial number ({e:?})")))
+    std::fs::read_to_string(SN_FILENAME)
+        .map_err(|e| Error::Io(format!("Failed reading {SN_FILENAME} to obtain serial number ({e:?})")))
 }
 
 #[cfg(test)]
