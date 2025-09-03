@@ -4,10 +4,14 @@ import * as fs from 'fs';
 import uuidv5 from 'uuidv5';
 
 const LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model';
-const LINUX_SERIAL_NUMBER_FILENAME = '/sys/firmware/devicetree/base/serial-number';
+const LINUX_SERIAL_NUMBER_FILENAME =
+  '/sys/firmware/devicetree/base/serial-number';
 
 export function get_system_id() {
-  if (fs.existsSync(LINUX_MODEL_FILENAME) && fs.existsSync(LINUX_SERIAL_NUMBER_FILENAME)) {
+  if (
+    fs.existsSync(LINUX_MODEL_FILENAME) &&
+    fs.existsSync(LINUX_SERIAL_NUMBER_FILENAME)
+  ) {
     return get_system_id_linux();
   }
   throw 'Unable to detect System ID on this platform';

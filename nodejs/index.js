@@ -2,7 +2,7 @@
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
 import WebSocket from 'ws';
-import { get_system_id } from "./system_id.js";
+import { get_system_id } from './system_id.js';
 
 /**
  * Socket open error.
