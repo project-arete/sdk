@@ -2,11 +2,13 @@ from threading import Thread
 from websockets.sync.client import connect
 import json
 import ssl
+from system_id import get_system_id
 
 class Client:
     websocket = None
 
     def __init__(self, websocket):
+        self.system_id = get_system_id()
         self.websocket = websocket
         self.cache = {}
 

@@ -11,6 +11,7 @@
   "private": false,
   "type": "module",
   "dependencies": {
+    "uuidv5": "^1.0.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {
