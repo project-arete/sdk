@@ -3,19 +3,19 @@ use strum_macros::Display;
 
 #[derive(Debug, Display)]
 pub enum Error {
-    #[strum(to_string = "Default: {0}")]
+    #[strum(to_string = "Default Error: {0}")]
     Default(String),
 
-    #[strum(to_string = "Default: {0}")]
+    #[strum(to_string = "Io Error: {0}")]
     Io(String),
 
-    #[strum(to_string = "Default: {0}")]
+    #[strum(to_string = "Lock Error: {0}")]
     Lock(String),
 
-    #[strum(to_string = "Default: {0}")]
+    #[strum(to_string = "Serialization Error: {0}")]
     Serialization(String),
 
-    #[strum(to_string = "Default: {0}")]
+    #[strum(to_string = "Timeout Error: {0}")]
     Timeout(String),
 }
 
@@ -56,6 +56,6 @@ mod tests {
     #[test]
     fn can_display() {
         let e = Error::Default("the message".to_string());
-        assert_eq!(e.to_string(), "Default: the message");
+        assert_eq!(e.to_string(), "Default Error: the message");
     }
 }
