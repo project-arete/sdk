@@ -2,6 +2,8 @@ import atexit
 import sys
 import time
 import RPi.GPIO as GPIO
+
+sys.path.append('../../src')
 from client import Client
 
 GPIO23 = 23

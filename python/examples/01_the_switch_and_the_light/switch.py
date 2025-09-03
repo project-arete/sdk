@@ -2,9 +2,11 @@ import atexit
 import sys
 import time
 import RPi.GPIO as GPIO
-from client import Client
 from threading import Thread
 from time import sleep
+
+sys.path.append('../../src')
+from client import Client
 
 GPIO04 = 4
 DESIRED_STATE_KEY = 'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState'
