@@ -17,5 +17,5 @@ def get_system_id_linux():
         serial_number = file.read()
     model_plus_serial_number = f"{model}:{serial_number}"
 
-    id = uuid.uuidv5(uuid.NAMESPACE_OID, model_plus_serial_number)
+    id = uuid.uuid5(uuid.NAMESPACE_OID, model_plus_serial_number)
     return id
