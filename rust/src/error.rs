@@ -1,11 +1,21 @@
 use std::{sync::PoisonError, time::SystemTimeError};
+use strum_macros::Display;
 
-#[derive(Debug)]
+#[derive(Debug, Display)]
 pub enum Error {
+    #[strum(to_string = "Default: {0}")]
     Default(String),
+
+    #[strum(to_string = "Default: {0}")]
     Io(String),
+
+    #[strum(to_string = "Default: {0}")]
     Lock(String),
+
+    #[strum(to_string = "Default: {0}")]
     Serialization(String),
+
+    #[strum(to_string = "Default: {0}")]
     Timeout(String),
 }
 
@@ -36,5 +46,16 @@ impl From<SystemTimeError> for Error {
 impl From<tungstenite::Error> for Error {
     fn from(e: tungstenite::Error) -> Self {
         Error::Io(e.to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Error;
+
+    #[test]
+    fn can_display() {
+        let e = Error::Default("the message".to_string());
+        assert_eq!(e.to_string(), "Default: the message");
     }
 }

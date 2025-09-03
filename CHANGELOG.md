@@ -5,6 +5,9 @@
 - [#30](https://github.com/project-arete/sdk/issues/30) (Rust) Publish tag releases to crates.io and enable static analysis during CI
 - [#29](https://github.com/project-arete/sdk/issues/29) (NodeJS) Publish tag releases to npmjs.com and enable static analysis during CI
 
+### Fixed
+- [#36](https://github.com/project-arete/sdk/issues/36) (Rust) Cannot call `to_string()` on Error: arete_sdk::Error doesn't implement std::fmt::Display
+
 ## [0.1.2] - 2025-08-30
 ### Added
 - [#21](https://github.com/project-arete/sdk/issues/21) (Python) Provide an SDK for Python
