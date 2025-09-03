@@ -77,6 +77,13 @@ mod tests {
     #[test]
     #[cfg(target_os = "linux")]
     fn can_get_system_id_on_linux() {
+        use std::path::Path;
+        const MODEL_FILENAME: &str = "/sys/firmware/devicetree/base/model";
+        const SN_FILENAME: &str = "/sys/firmware/devicetree/base/serial-number";
+        if !Path::new(MODEL_FILENAME).exists() || !Path::new(SN_FILENAME).exists() {
+            return; // Skip because device tree is hidden; we are probably running in the CI env
+        }
+
         let _system_id = get_system_id().unwrap();
     }
 }
