@@ -1,4 +1,5 @@
 import atexit
+import ssl
 import sys
 import time
 import RPi.GPIO as GPIO
@@ -13,7 +14,10 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(GPIO23, GPIO.OUT)
 
 # Connect to Arete control plane
-client = Client.connect('wss://dashboard.test.cns.dev:443')
+ssl_context = ssl.SSLContext()
+ssl_context.verify_mode = ssl.CERT_NONE
+ssl_context.check_hostname = False
+client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 sys.stderr.write('Connected to Arete control plane\n')
 
 # Detect future changes in desired state, and actualize it
