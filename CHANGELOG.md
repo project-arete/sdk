@@ -7,6 +7,7 @@
 - [#29](https://github.com/project-arete/sdk/issues/29) (NodeJS) Publish tag releases to npmjs.com and enable static analysis during CI
 
 ### Fixed
+- [#39](https://github.com/project-arete/sdk/issues/39) (Python) Python SDK should not hard-code SSL options
 - [#36](https://github.com/project-arete/sdk/issues/36) (Rust) Cannot call `to_string()` on Error: arete_sdk::Error doesn't implement std::fmt::Display
 
 ## [0.1.2] - 2025-08-30

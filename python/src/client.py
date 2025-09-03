@@ -1,7 +1,6 @@
 from threading import Thread
 from websockets.sync.client import connect
 import json
-import ssl
 from system_id import get_system_id
 
 class Client:
@@ -13,11 +12,8 @@ class Client:
         self.cache = {}
 
     @staticmethod
-    def connect(url):
-        ssl_context = ssl.SSLContext()
-        ssl_context.verify_mode = ssl.CERT_NONE
-        ssl_context.check_hostname = False
-        websocket = connect(url, ssl=ssl_context)
+    def connect(url, ssl=None):
+        websocket = connect(url, ssl=ssl)
         self = Client(websocket)
 
         # Start a thread to receive messages
