@@ -2,6 +2,7 @@
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
 import WebSocket from 'ws';
+import { get_system_id } from "./system_id.js";
 
 /**
  * Socket open error.
@@ -162,6 +163,12 @@ export class Client extends Emitter {
   #cache;
 
   /**
+   * The System ID.
+   * @private
+   */
+  #systemID;
+
+  /**
    * Creates a new CNS client.
    * @constructor
    * @param {object} options The optional host connection options.
@@ -171,6 +178,8 @@ export class Client extends Emitter {
    */
   constructor(options = {}) {
     super();
+
+    this.#systemID = get_system_id();
 
     this.#options = {
       protocol:
