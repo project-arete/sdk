@@ -97,6 +97,13 @@ impl Connection {
         }
     }
 
+    pub fn add_node(&mut self, id: &str, alias: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
+        let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
+        let token_arg = token.unwrap_or("$uuid".to_string());
+        let args = vec![id.to_string(), alias.to_string(), upstream_arg, token_arg];
+        self.send(Format::Json, "nodes", &args)
+    }
+
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
         let cache = self.cache.lock()?;
         let value = match cache.keys.get(key) {
