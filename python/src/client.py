@@ -1,50 +1,55 @@
 from threading import Thread
-from websockets.sync.client import connect
+from websockets.sync.client import connect as websockets_connect
 import json
 from system_id import get_system_id
 
 class Client:
-    cache = {}
-    system_id = None
-    websocket = None
-
     def __init__(self, websocket):
+        self.cache = {}
         self.system_id = get_system_id()
+        self.transaction = 1
         self.websocket = websocket
 
-    @staticmethod
-    def connect(url, ssl=None):
-        websocket = connect(url, ssl=ssl)
-        self = Client(websocket)
+    @classmethod
+    def connect(cls, url, ssl=None):
+        websocket = websockets_connect(url, ssl=ssl)
+
+        client = cls(websocket)
 
         # Start a thread to receive messages
-        receiver = Thread(target=receive_messages, args=(self, ))
+        receiver = Thread(target=receive_messages, args=(client, ))
         receiver.daemon = True
         receiver.start()
 
-        return self
+        return client
 
-    @classmethod
     def add_node(self, id, alias, upstream=False, token=None):
-        pass # TODO
+        args = [id, alias, upstream]
+        return self.send('json', 'nodes', args)
 
-    @classmethod
     def get(self, key):
         return self.cache['keys'][key]
 
-    @classmethod
     def keys(self):
         return self.cache['keys']
 
-    @classmethod
     def put(self, key, value):
         pass # TODO
 
-    @classmethod
+    def send(self, format, cmd, args=[]):
+        for arg in args:
+            cmd = f'{cmd} "{arg}"'
+        self.transaction += 1
+        message = json.dumps({
+            'transaction': self.transaction,
+            'format': format,
+            'command': cmd,
+        })
+        return self.websocket.send(message)
+
     def stats(self):
         return self.cache['stats']
 
-    @classmethod
     def version(self):
         return self.cache['version']
 
