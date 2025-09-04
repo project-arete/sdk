@@ -46,7 +46,7 @@ struct SparseStats {
 
 #[derive(Debug, Default, Deserialize)]
 struct SparseCache {
-    stats: SparseStats,
+    stats: Option<SparseStats>,
     version: Option<String>,
     keys: Option<HashMap<String, Value>>,
 }
@@ -116,23 +116,25 @@ impl Connection {
     }
 
     fn merge(target: &mut Cache, source: &SparseCache) {
-        if let Some(ref started) = source.stats.started {
-            target.stats.started = started.clone();
-        }
-        if let Some(reads) = source.stats.reads {
-            target.stats.reads = reads;
-        }
-        if let Some(writes) = source.stats.writes {
-            target.stats.writes = writes;
-        }
-        if let Some(updates) = source.stats.updates {
-            target.stats.updates = updates;
-        }
-        if let Some(errors) = source.stats.errors {
-            target.stats.errors = errors;
-        }
-        if let Some(ref connection) = source.stats.connection {
-            target.stats.connection = connection.clone();
+        if let Some(ref stats) = source.stats {
+            if let Some(ref started) = stats.started {
+                target.stats.started = started.clone();
+            }
+            if let Some(reads) = stats.reads {
+                target.stats.reads = reads;
+            }
+            if let Some(writes) = stats.writes {
+                target.stats.writes = writes;
+            }
+            if let Some(updates) = stats.updates {
+                target.stats.updates = updates;
+            }
+            if let Some(errors) = stats.errors {
+                target.stats.errors = errors;
+            }
+            if let Some(ref connection) = stats.connection {
+                target.stats.connection = connection.clone();
+            }
         }
         if let Some(ref version) = source.version {
             target.version = version.clone();
