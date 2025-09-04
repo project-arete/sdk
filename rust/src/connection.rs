@@ -1,4 +1,5 @@
 use super::{Error, Stats};
+use crate::stats::ConnectionState;
 use serde::Deserialize;
 use serde_json::Value;
 use std::io::ErrorKind;
@@ -13,7 +14,6 @@ use std::{
 };
 use strum_macros::{AsRefStr, Display};
 use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
-use crate::stats::ConnectionState;
 
 #[derive(AsRefStr, Clone, Debug, Display)]
 pub enum Format {
