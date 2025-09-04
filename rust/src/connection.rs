@@ -13,6 +13,7 @@ use std::{
 };
 use strum_macros::{AsRefStr, Display};
 use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
+use crate::stats::ConnectionState;
 
 #[derive(AsRefStr, Clone, Debug, Display)]
 pub enum Format {
@@ -33,9 +34,19 @@ struct Cache {
     keys: HashMap<String, Value>,
 }
 
+#[derive(Clone, Debug, Default, Deserialize)]
+struct SparseStats {
+    started: Option<String>,
+    reads: Option<u32>,
+    writes: Option<u32>,
+    updates: Option<u32>,
+    errors: Option<u32>,
+    connection: Option<ConnectionState>,
+}
+
 #[derive(Debug, Default, Deserialize)]
 struct SparseCache {
-    stats: Stats,
+    stats: SparseStats,
     version: Option<String>,
     keys: Option<HashMap<String, Value>>,
 }
@@ -105,7 +116,24 @@ impl Connection {
     }
 
     fn merge(target: &mut Cache, source: &SparseCache) {
-        target.stats = source.stats.clone();
+        if let Some(ref started) = source.stats.started {
+            target.stats.started = started.clone();
+        }
+        if let Some(reads) = source.stats.reads {
+            target.stats.reads = reads;
+        }
+        if let Some(writes) = source.stats.writes {
+            target.stats.writes = writes;
+        }
+        if let Some(updates) = source.stats.updates {
+            target.stats.updates = updates;
+        }
+        if let Some(errors) = source.stats.errors {
+            target.stats.errors = errors;
+        }
+        if let Some(ref connection) = source.stats.connection {
+            target.stats.connection = connection.clone();
+        }
         if let Some(ref version) = source.version {
             target.version = version.clone();
         }
