@@ -1,4 +1,5 @@
 use super::{Error, Stats};
+use crate::stats::ConnectionState;
 use serde::Deserialize;
 use serde_json::Value;
 use std::io::ErrorKind;
@@ -33,6 +34,23 @@ struct Cache {
     keys: HashMap<String, Value>,
 }
 
+#[derive(Clone, Debug, Default, Deserialize)]
+struct SparseStats {
+    started: Option<String>,
+    reads: Option<u32>,
+    writes: Option<u32>,
+    updates: Option<u32>,
+    errors: Option<u32>,
+    connection: Option<ConnectionState>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+struct SparseCache {
+    stats: Option<SparseStats>,
+    version: Option<String>,
+    keys: Option<HashMap<String, Value>>,
+}
+
 impl Connection {
     pub(crate) fn new(socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>) -> Self {
         let next_transaction_id = AtomicU64::new(1);
@@ -64,7 +82,7 @@ impl Connection {
                     }
                 };
                 if let Message::Text(ref message) = message {
-                    let payload: Cache = serde_json::from_slice(message.as_bytes()).unwrap();
+                    let payload: SparseCache = serde_json::from_slice(message.as_bytes()).unwrap();
                     if let Ok(mut cache) = cache_2.lock() {
                         Self::merge(&mut cache, &payload);
                     }
@@ -97,11 +115,34 @@ impl Connection {
         Ok(vec)
     }
 
-    fn merge(target: &mut Cache, source: &Cache) {
-        target.stats = source.stats.clone();
-        target.version = source.version.clone();
-        for (k, v) in source.keys.iter() {
-            target.keys.insert(k.to_string(), v.clone());
+    fn merge(target: &mut Cache, source: &SparseCache) {
+        if let Some(ref stats) = source.stats {
+            if let Some(ref started) = stats.started {
+                target.stats.started = started.clone();
+            }
+            if let Some(reads) = stats.reads {
+                target.stats.reads = reads;
+            }
+            if let Some(writes) = stats.writes {
+                target.stats.writes = writes;
+            }
+            if let Some(updates) = stats.updates {
+                target.stats.updates = updates;
+            }
+            if let Some(errors) = stats.errors {
+                target.stats.errors = errors;
+            }
+            if let Some(ref connection) = stats.connection {
+                target.stats.connection = connection.clone();
+            }
+        }
+        if let Some(ref version) = source.version {
+            target.version = version.clone();
+        }
+        if let Some(ref keys) = source.keys {
+            for (k, v) in keys.iter() {
+                target.keys.insert(k.to_string(), v.clone());
+            }
         }
     }
 
