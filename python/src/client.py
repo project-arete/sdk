@@ -4,12 +4,13 @@ import json
 from system_id import get_system_id
 
 class Client:
+    cache = {}
+    system_id = None
     websocket = None
 
     def __init__(self, websocket):
         self.system_id = get_system_id()
         self.websocket = websocket
-        self.cache = {}
 
     @staticmethod
     def connect(url, ssl=None):
