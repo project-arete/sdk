@@ -33,6 +33,13 @@ struct Cache {
     keys: HashMap<String, Value>,
 }
 
+#[derive(Debug, Default, Deserialize)]
+struct SparseCache {
+    stats: Stats,
+    version: Option<String>,
+    keys: Option<HashMap<String, Value>>,
+}
+
 impl Connection {
     pub(crate) fn new(socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>) -> Self {
         let next_transaction_id = AtomicU64::new(1);
@@ -64,7 +71,7 @@ impl Connection {
                     }
                 };
                 if let Message::Text(ref message) = message {
-                    let payload: Cache = serde_json::from_slice(message.as_bytes()).unwrap();
+                    let payload: SparseCache = serde_json::from_slice(message.as_bytes()).unwrap();
                     if let Ok(mut cache) = cache_2.lock() {
                         Self::merge(&mut cache, &payload);
                     }
@@ -97,11 +104,15 @@ impl Connection {
         Ok(vec)
     }
 
-    fn merge(target: &mut Cache, source: &Cache) {
+    fn merge(target: &mut Cache, source: &SparseCache) {
         target.stats = source.stats.clone();
-        target.version = source.version.clone();
-        for (k, v) in source.keys.iter() {
-            target.keys.insert(k.to_string(), v.clone());
+        if let Some(ref version) = source.version {
+            target.version = version.clone();
+        }
+        if let Some(ref keys) = source.keys {
+            for (k, v) in keys.iter() {
+                target.keys.insert(k.to_string(), v.clone());
+            }
         }
     }
 
