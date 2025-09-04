@@ -1,7 +1,9 @@
 import { Gpio } from 'onoff';
 import { Client } from '../../index.js';
 
+const APPNAME = "arete-sdk-01-switch";
 const GPIO04 = 516;
+const NODE_ID = "ozr9fZbU8i7hMdjEjuTS2o";
 const DESIRED_STATE_KEY =
   'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState';
 
@@ -16,6 +18,10 @@ let client = new Client({
 });
 await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
+
+// Register this node with the control plane
+await client.addNode(NODE_ID, APPNAME, false);
+console.log(`Registered as node ${NODE_ID} on Arete control plane`);
 
 // Read initial switch state, and sync it with Arete
 let state = pin.readSync();
