@@ -17,7 +17,7 @@ export function get_system_id() {
   throw 'Unable to detect System ID on this platform';
 }
 
-export function get_system_id_linux() {
+function get_system_id_linux() {
   const model = fs.readFileSync(LINUX_MODEL_FILENAME);
   const serialNumber = fs.readFileSync(LINUX_SERIAL_NUMBER_FILENAME);
   const modelPlusSerialNumber = `${model}:${serialNumber}`;

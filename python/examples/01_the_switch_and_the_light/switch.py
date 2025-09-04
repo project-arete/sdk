@@ -9,7 +9,9 @@ from time import sleep
 sys.path.append('../../src')
 from client import Client
 
+APPNAME = "arete-sdk-01-switch"
 GPIO04 = 4
+NODE_ID = "ozr9fZbU8i7hMdjEjuTS2o"
 DESIRED_STATE_KEY = 'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState'
 
 # Configure pin for input
@@ -22,6 +24,10 @@ ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 sys.stderr.write('Connected to Arete control plane\n')
+
+# Register this node with the control plane
+client.add_node(NODE_ID, APPNAME, False)
+sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
 
 # Read initial switch state, and sync it with Arete
 state = GPIO.input(GPIO04) == 0
