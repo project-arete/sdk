@@ -25,6 +25,10 @@ class Client:
         return self
 
     @classmethod
+    def add_node(self, id, alias, upstream=False, token=None):
+        pass # TODO
+
+    @classmethod
     def get(self, key):
         return self.cache['keys'][key]
 

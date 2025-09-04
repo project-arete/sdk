@@ -7,7 +7,9 @@ import RPi.GPIO as GPIO
 sys.path.append('../../src')
 from client import Client
 
+APPNAME = "arete-sdk-01-light"
 GPIO23 = 23
+NODE_ID = 'onqXVczGoymQkFc3UN6qcM'
 
 # Configure pin for output
 GPIO.setmode(GPIO.BCM)
@@ -19,6 +21,10 @@ ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 sys.stderr.write('Connected to Arete control plane\n')
+
+# Register this node with the control plane
+client.add_node(NODE_ID, APPNAME)
+sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
 
 # Detect future changes in desired state, and actualize it
 # TODO
