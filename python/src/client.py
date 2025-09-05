@@ -28,7 +28,7 @@ class Client:
         args = [id, name, upstream]
         return self.send('json', 'nodes', args)
 
-    def add_system(self, id, name):
+    def add_system(self, id=None, name=None):
         if id is None:
             id = self.system_id
         if name is None:
