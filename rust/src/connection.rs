@@ -173,7 +173,6 @@ impl Connection {
 
         let mut msg = HashMap::new();
         let transaction_id = self.next_transaction_id.fetch_add(1, Ordering::SeqCst);
-        msg.insert("format".to_string(), Value::String(format.to_string()));
         msg.insert("transaction".to_string(), Value::from(transaction_id));
         msg.insert("command".to_string(), Value::String(cmd));
 
