@@ -1,7 +1,8 @@
 from threading import Thread
 from websockets.sync.client import connect as websockets_connect
 import json
-from system_id import get_system_id
+import socket
+from system import get_system_id
 
 class Client:
     def __init__(self, websocket):
@@ -26,6 +27,14 @@ class Client:
     def add_node(self, id, name, upstream=False, token=None):
         args = [id, name, upstream]
         return self.send('json', 'nodes', args)
+
+    def add_system(self, id=None, name=None):
+        if id is None:
+            id = self.system_id
+        if name is None:
+            name = socket.gethostname()
+        args = [id, name]
+        return self.send('json', 'systems', args)
 
     def get(self, key):
         return self.cache['keys'][key]

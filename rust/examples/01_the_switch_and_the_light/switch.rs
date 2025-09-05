@@ -28,6 +28,7 @@ pub fn main() {
     eprintln!("Connected to Arete control plane");
 
     // Register this node with the control plane
+    conn.add_system().unwrap();
     conn.add_node(NODE_ID, APPNAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
 

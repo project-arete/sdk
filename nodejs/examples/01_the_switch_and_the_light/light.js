@@ -20,6 +20,7 @@ await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
 
 // Register this node with the control plane
+await client.addSystem();
 await client.addNode(NODE_ID, APPNAME, false);
 console.log(`Registered as node ${NODE_ID} on Arete control plane`);
 
