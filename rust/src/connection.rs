@@ -82,8 +82,8 @@ impl Connection {
                     }
                 };
                 if let Message::Text(ref message) = message {
+                    eprintln!("** got {}", message.to_string());
                     let payload: SparseCache = serde_json::from_slice(message.as_bytes()).unwrap();
-                    eprintln!("** got {payload:?}");
                     if let Ok(mut cache) = cache_2.lock() {
                         Self::merge(&mut cache, &payload);
                     }
