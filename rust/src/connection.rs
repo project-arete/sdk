@@ -97,6 +97,12 @@ impl Connection {
         }
     }
 
+    pub fn add_context(&mut self, node: &str, id: &str, name: &str, token: Option<String>) -> Result<(), Error> {
+        let token_arg = token.unwrap_or("$uuid".to_string());
+        let args = vec![node.to_string(), id.to_string(), name.to_string(), token_arg];
+        self.send(Format::Json, "contexts", &args)
+    }
+
     pub fn add_node(&mut self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
         let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
         let token_arg = token.unwrap_or("$uuid".to_string());

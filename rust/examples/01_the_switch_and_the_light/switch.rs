@@ -4,6 +4,8 @@ const APPNAME: &str = "arete-sdk-01-switch";
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO04: u32 = 4;
 const NODE_ID: &str = "ozr9fZbU8i7hMdjEjuTS2o";
+const CONTEXT_ID: &str = "aRDhTq6wLUWd8X3xjRMkp4";
+const CONTEXT_NAME: &str = "Building 4, 3rd floor, Office 23-B";
 const DESIRED_STATE_KEY: &str = "cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState";
 
 #[cfg(not(target_os = "linux"))]
@@ -29,7 +31,11 @@ pub fn main() {
 
     // Register this node with the control plane
     conn.add_node(NODE_ID, APPNAME, false, None).unwrap();
-    eprintln!("Registered as node {NODE_ID} on Arete control plane");
+    eprintln!("Registered as node {NODE_ID} with Arete control plane");
+
+    // Register a context for this node
+    conn.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME, None).unwrap();
+    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} with Arete control plane");
 
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
