@@ -191,7 +191,7 @@ impl Connection {
         Ok(())
     }
 
-    pub fn send(&mut self, format: Format, cmd: &str, args: &[String]) -> Result<u64, Error> {
+    pub fn send(&mut self, response_format: Format, cmd: &str, args: &[String]) -> Result<u64, Error> {
         let mut cmd = cmd.to_string();
         for arg in args {
             cmd = format!("{cmd} \"{arg}\"");
@@ -199,6 +199,7 @@ impl Connection {
 
         let mut msg = HashMap::new();
         let transaction_id = self.next_transaction_id.fetch_add(1, Ordering::SeqCst);
+        msg.insert("format".to_string(), Value::String(response_format.to_string()));
         msg.insert("transaction".to_string(), Value::from(transaction_id));
         msg.insert("command".to_string(), Value::String(cmd));
 
@@ -207,15 +208,11 @@ impl Connection {
             requests.insert(transaction_id, None);
         }
 
-        match format {
-            Format::Json => {
-                let msg_as_json = serde_json::to_string(&msg)?;
-                eprintln!("** sending {msg_as_json}");
-                let message = Message::text(msg_as_json);
-                self.send_message(message)?;
-                Ok(transaction_id)
-            }
-        }
+        let msg_as_json = serde_json::to_string(&msg)?;
+        eprintln!("** sending {msg_as_json}");
+        let message = Message::text(msg_as_json);
+        self.send_message(message)?;
+        Ok(transaction_id)
     }
 
     fn send_message(&mut self, message: Message) -> Result<(), Error> {
