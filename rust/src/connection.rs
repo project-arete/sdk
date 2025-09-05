@@ -21,10 +21,15 @@ pub enum Format {
     Json,
 }
 
+struct Response {
+    error: Option<String>,
+}
+
 pub struct Connection {
-    socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>,
-    next_transaction_id: AtomicU64,
     cache: Arc<Mutex<Cache>>,
+    next_transaction_id: AtomicU64,
+    requests: Arc<Mutex<HashMap<u64, Option<Response>>>>,
+    socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>,
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -55,10 +60,12 @@ impl Connection {
     pub(crate) fn new(socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>) -> Self {
         let next_transaction_id = AtomicU64::new(1);
         let cache = Arc::new(Mutex::new(Cache::default()));
+        let requests = Arc::new(Mutex::new(HashMap::new()));
 
         // Spawn a thread to handle incoming messages
         let socket_2 = socket.clone();
         let cache_2 = cache.clone();
+        let requests_2 = requests.clone();
         std::thread::spawn(move || {
             loop {
                 let maybe_message = {
@@ -82,6 +89,23 @@ impl Connection {
                     }
                 };
                 if let Message::Text(ref message) = message {
+                    let incoming: HashMap<String, Value> = serde_json::from_slice(message.as_bytes()).unwrap();
+
+                    if let Some(Value::Number(transaction)) = incoming.get("transaction") {
+                        let transaction: u64 = transaction.as_u64().unwrap();
+                        if let Some(response) = incoming.get("response") {
+                            let mut requests = requests_2.lock().unwrap();
+                            if response.is_string() && response.to_string().is_empty() {
+                                requests.insert(transaction, Some(Response{error: None}));
+                            } else if let Value::Object(response) = response {
+                                if let Some(error_msg) = response.get("error") {
+                                    requests.insert(transaction, Some(Response { error: Some(error_msg.to_string()) }));
+                                }
+                            }
+                        }
+                        continue;
+                    }
+
                     let payload: SparseCache = serde_json::from_slice(message.as_bytes()).unwrap();
                     if let Ok(mut cache) = cache_2.lock() {
                         Self::merge(&mut cache, &payload);
@@ -91,17 +115,42 @@ impl Connection {
         });
 
         Self {
-            socket,
-            next_transaction_id,
             cache,
+            next_transaction_id,
+            requests,
+            socket,
         }
     }
 
     pub fn add_node(&mut self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
+        // Send request
         let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
         let token_arg = token.unwrap_or("$uuid".to_string());
         let args = vec![id.to_string(), name.to_string(), upstream_arg, token_arg];
-        self.send(Format::Json, "nodes", &args)
+        let transaction = self.send(Format::Json, "nodes", &args)?;
+
+        // Wait for response
+        let start_time = SystemTime::now();
+        let sleep_for = Duration::from_millis(100);
+        let timeout= Duration::from_secs(5);
+        while SystemTime::now().duration_since(start_time)? < timeout {
+            {
+                let requests = self.requests.lock()?;
+                if let Some(response) = requests.get(&transaction) {
+                    match response {
+                        None => continue,
+                        Some(response) => {
+                            match response.error.as_ref() {
+                                None => return Ok(()),
+                                Some(error_msg) => return Err(Error::Default(error_msg.clone())),
+                            }
+                        }
+                    }
+                }
+            }
+            std::thread::sleep(sleep_for);
+        }
+        Err(Error::Timeout("Timed out waiting for reply".to_string()))
     }
 
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
@@ -155,10 +204,11 @@ impl Connection {
 
     pub fn put(&mut self, key: &str, value: &str) -> Result<(), Error> {
         let args = vec![format!("\"{key}\""), value.to_string()];
-        self.send(Format::Json, "put", &args)
+        let _ = self.send(Format::Json, "put", &args)?;
+        Ok(())
     }
 
-    pub fn send(&mut self, format: Format, cmd: &str, args: &[String]) -> Result<(), Error> {
+    pub fn send(&mut self, format: Format, cmd: &str, args: &[String]) -> Result<u64, Error> {
         let mut cmd = cmd.to_string();
         for arg in args {
             cmd = format!("{cmd} \"{arg}\"");
@@ -166,13 +216,22 @@ impl Connection {
 
         let mut msg = HashMap::new();
         let transaction_id = self.next_transaction_id.fetch_add(1, Ordering::SeqCst);
-        msg.insert("format".to_string(), Value::String(format.to_string()));
         msg.insert("transaction".to_string(), Value::from(transaction_id));
         msg.insert("command".to_string(), Value::String(cmd));
 
-        let msg_as_json = serde_json::to_string(&msg)?;
-        let message = Message::text(msg_as_json);
-        self.send_message(message)
+        {
+            let mut requests = self.requests.lock()?;
+            requests.insert(transaction_id, None);
+        }
+
+        match format {
+            Format::Json => {
+                let msg_as_json = serde_json::to_string(&msg)?;
+                let message = Message::text(msg_as_json);
+                self.send_message(message)?;
+                Ok(transaction_id)
+            }
+        }
     }
 
     fn send_message(&mut self, message: Message) -> Result<(), Error> {
