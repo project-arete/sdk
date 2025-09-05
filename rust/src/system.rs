@@ -66,7 +66,7 @@ fn get_serial_number() -> Result<String, Error> {
 
 #[cfg(test)]
 mod tests {
-    use crate::system_id::get_system_id;
+    use crate::system::get_system_id;
 
     #[test]
     #[cfg(target_os = "macos")]
