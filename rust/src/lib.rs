@@ -7,7 +7,7 @@ pub use connection::Connection;
 pub use error::Error;
 pub use stats::Stats;
 use std::sync::{Arc, Mutex};
-use tungstenite::{handshake::client::Response,stream::MaybeTlsStream};
+use tungstenite::{handshake::client::Response, stream::MaybeTlsStream};
 
 pub fn connect(url: &str) -> Result<(Connection, Response), Error> {
     // Connect

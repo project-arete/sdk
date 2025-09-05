@@ -1,4 +1,4 @@
-use super::{system, Error, Stats};
+use super::{Error, Stats, system};
 use crate::stats::ConnectionState;
 use serde::Deserialize;
 use serde_json::Value;
@@ -100,10 +100,15 @@ impl Connection {
                         if let Some(response) = incoming.get("response") {
                             let mut requests = requests_2.lock().unwrap();
                             if response.is_string() && response.as_str().unwrap_or_default().is_empty() {
-                                requests.insert(transaction, Some(Response{error: None}));
+                                requests.insert(transaction, Some(Response { error: None }));
                             } else if let Value::Object(response) = response {
                                 if let Some(error_msg) = response.get("error") {
-                                    requests.insert(transaction, Some(Response { error: Some(error_msg.to_string()) }));
+                                    requests.insert(
+                                        transaction,
+                                        Some(Response {
+                                            error: Some(error_msg.to_string()),
+                                        }),
+                                    );
                                 }
                             }
                         }
@@ -130,7 +135,13 @@ impl Connection {
         let system_id = system::get_system_id()?;
         let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
         let token_arg = token.unwrap_or("$uuid".to_string());
-        let args = vec![system_id.to_string(), id.to_string(), name.to_string(), upstream_arg, token_arg];
+        let args = vec![
+            system_id.to_string(),
+            id.to_string(),
+            name.to_string(),
+            upstream_arg,
+            token_arg,
+        ];
         let transaction = self.send(Format::Json, "nodes", &args)?;
         let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
         Ok(())
