@@ -178,6 +178,7 @@ impl Connection {
         msg.insert("command".to_string(), Value::String(cmd));
 
         let msg_as_json = serde_json::to_string(&msg)?;
+        eprintln!("** sending {msg_as_json}");
         let message = Message::text(msg_as_json);
         self.send_message(message)
     }
