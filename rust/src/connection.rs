@@ -97,10 +97,10 @@ impl Connection {
         }
     }
 
-    pub fn add_node(&mut self, id: &str, alias: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
+    pub fn add_node(&mut self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
         let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
         let token_arg = token.unwrap_or("$uuid".to_string());
-        let args = vec![id.to_string(), alias.to_string(), upstream_arg, token_arg];
+        let args = vec![id.to_string(), name.to_string(), upstream_arg, token_arg];
         self.send(Format::Json, "nodes", &args)
     }
 

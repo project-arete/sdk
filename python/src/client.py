@@ -23,8 +23,8 @@ class Client:
 
         return client
 
-    def add_node(self, id, alias, upstream=False, token=None):
-        args = [id, alias, upstream]
+    def add_node(self, id, name, upstream=False, token=None):
+        args = [id, name, upstream]
         return self.send('json', 'nodes', args)
 
     def get(self, key):
