@@ -91,6 +91,7 @@ impl Connection {
                 };
                 if let Message::Text(ref message) = message {
                     let incoming: HashMap<String, Value> = serde_json::from_slice(message.as_bytes()).unwrap();
+                    eprintln!("** got {incoming:?}");
 
                     if let Some(Value::Number(transaction)) = incoming.get("transaction") {
                         let transaction: u64 = transaction.as_u64().unwrap();
@@ -209,6 +210,7 @@ impl Connection {
         match format {
             Format::Json => {
                 let msg_as_json = serde_json::to_string(&msg)?;
+                eprintln!("** sending {msg_as_json}");
                 let message = Message::text(msg_as_json);
                 self.send_message(message)?;
                 Ok(transaction_id)
