@@ -1,6 +1,7 @@
 // The Project Arete SDK for NodeJS
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
+import os from 'os';
 import WebSocket from 'ws';
 import { get_system_id } from './system.js';
 
