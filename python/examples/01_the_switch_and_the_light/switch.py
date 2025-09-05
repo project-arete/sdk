@@ -26,6 +26,7 @@ client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 sys.stderr.write('Connected to Arete control plane\n')
 
 # Register this node with the control plane
+client.add_system()
 client.add_node(NODE_ID, APPNAME, False)
 sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
 

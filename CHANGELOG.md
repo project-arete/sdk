@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- [#46](https://github.com/project-arete/sdk/issues/46) Example services should add their system to the Arete Control Plane on startup
 - [#31](https://github.com/project-arete/sdk/issues/31) Add a function to derive a System ID
 - [#30](https://github.com/project-arete/sdk/issues/30) (Rust) Publish tag releases to crates.io and enable static analysis during CI
 - [#29](https://github.com/project-arete/sdk/issues/29) (NodeJS) Publish tag releases to npmjs.com and enable static analysis during CI
