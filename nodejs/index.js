@@ -2,7 +2,7 @@
 // Copyright 2025 Padi, Inc. All Rights Reserved.
 
 import WebSocket from 'ws';
-import { get_system_id } from './system_id.js';
+import { get_system_id } from './system.js';
 
 /**
  * Socket open error.
@@ -357,6 +357,22 @@ export class Client extends Emitter {
   addNode(id, name, upstream) {
     const args = [id, name, upstream, null];
     return this.#send('json', 'nodes', ...args);
+  }
+
+  /**
+   * Add a system.
+   * @method
+   * @param {string} id The globally unique system id.
+   * @param {string} name The human-readable system name.
+   * @returns {Promise} Returns a promise.
+   * @fulfil {string} - The response from the host.
+   * @reject {Error} - The request failed.
+   */
+  addSystem(id, name, upstream) {
+    id = id || this.#systemID;
+    name = name || os.hostname();
+    const args = [id, name];
+    return this.#send('json', 'systems', ...args);
   }
 
   /**
