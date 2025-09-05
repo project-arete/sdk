@@ -21,6 +21,7 @@ pub enum Format {
     Json,
 }
 
+#[derive(Clone, Debug)]
 struct Response {
     error: Option<String>,
 }
@@ -130,27 +131,8 @@ impl Connection {
         let transaction = self.send(Format::Json, "nodes", &args)?;
 
         // Wait for response
-        let start_time = SystemTime::now();
-        let sleep_for = Duration::from_millis(100);
-        let timeout= Duration::from_secs(5);
-        while SystemTime::now().duration_since(start_time)? < timeout {
-            {
-                let requests = self.requests.lock()?;
-                if let Some(response) = requests.get(&transaction) {
-                    match response {
-                        None => continue,
-                        Some(response) => {
-                            match response.error.as_ref() {
-                                None => return Ok(()),
-                                Some(error_msg) => return Err(Error::Default(error_msg.clone())),
-                            }
-                        }
-                    }
-                }
-            }
-            std::thread::sleep(sleep_for);
-        }
-        Err(Error::Timeout("Timed out waiting for reply".to_string()))
+        let _response = self.wait_for_response(transaction, Duration::from_secs(5))?;
+        Ok(())
     }
 
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
@@ -263,5 +245,28 @@ impl Connection {
             std::thread::sleep(sleep_for);
         }
         Err(Error::Timeout("Timed out waiting for open".to_string()))
+    }
+
+    fn wait_for_response(&self, transaction: u64, timeout: Duration) -> Result<Response, Error> {
+        let start_time = SystemTime::now();
+        let sleep_for = Duration::from_millis(100);
+        while SystemTime::now().duration_since(start_time)? < timeout {
+            {
+                let requests = self.requests.lock()?;
+                if let Some(response) = requests.get(&transaction) {
+                    match response {
+                        None => continue,
+                        Some(response) => {
+                            match response.error.as_ref() {
+                                None => return Ok(response.clone()),
+                                Some(error_msg) => return Err(Error::Default(error_msg.clone())),
+                            }
+                        }
+                    }
+                }
+            }
+            std::thread::sleep(sleep_for);
+        }
+        Err(Error::Timeout("Timed out waiting for response".to_string()))
     }
 }
