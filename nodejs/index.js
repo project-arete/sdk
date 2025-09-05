@@ -348,14 +348,14 @@ export class Client extends Emitter {
    * Add a node.
    * @method
    * @param {string} id The globally unique node id.
-   * @param {string} alias The human-readable node alias.
+   * @param {string} name The human-readable node name.
    * @param {bool} upstream
    * @returns {Promise} Returns a promise.
    * @fulfil {string} - The response from the host.
    * @reject {Error} - The request failed.
    */
-  addNode(id, alias, upstream) {
-    const args = [id, alias, upstream, null];
+  addNode(id, name, upstream) {
+    const args = [id, name, upstream, null];
     return this.#send('json', 'nodes', ...args);
   }
 
