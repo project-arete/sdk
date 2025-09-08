@@ -23,7 +23,8 @@ pub fn main() {
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
     let (mut client, _res) = arete_sdk::connect("wss://dashboard.test.cns.dev:443").unwrap();
-    client.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    client
+        .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
     eprintln!("Connected to Arete control plane");
 
