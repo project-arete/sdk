@@ -29,7 +29,7 @@ struct Response {
     error: Option<String>,
 }
 
-pub struct Connection {
+pub struct Client {
     cache: Arc<Mutex<Cache>>,
     next_transaction_id: AtomicU64,
     requests: Arc<Mutex<HashMap<u64, Option<Response>>>>,
@@ -60,7 +60,7 @@ struct SparseCache {
     keys: Option<HashMap<String, Value>>,
 }
 
-impl Connection {
+impl Client {
     pub(crate) fn new(socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>) -> Self {
         let next_transaction_id = AtomicU64::new(1);
         let cache = Arc::new(Mutex::new(Cache::default()));

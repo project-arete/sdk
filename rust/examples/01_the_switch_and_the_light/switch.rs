@@ -22,14 +22,14 @@ pub fn main() {
 
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let (mut conn, _res) = arete_sdk::connect("wss://dashboard.test.cns.dev:443").unwrap();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    let (mut client, _res) = arete_sdk::connect("wss://dashboard.test.cns.dev:443").unwrap();
+    client.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
     eprintln!("Connected to Arete control plane");
 
     // Register this node with the control plane
-    conn.add_system().unwrap();
-    conn.add_node(NODE_ID, APPNAME, false, None).unwrap();
+    client.add_system().unwrap();
+    client.add_node(NODE_ID, APPNAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
 
     // Read initial switch state, and sync it with Arete
@@ -40,7 +40,7 @@ pub fn main() {
         .get_value()
         .unwrap()
         > 0;
-    conn.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
+    client.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
     // Startup complete
@@ -53,7 +53,7 @@ pub fn main() {
     loop {
         let event = pin_events.get_event().unwrap();
         let state = event.event_type() == EventType::FallingEdge;
-        conn.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
+        client.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
         eprintln!("Switch is now {}", if state { "ON" } else { "OFF" });
     }
 }

@@ -5,6 +5,7 @@
 - [#52](https://github.com/project-arete/sdk/issues/52) (Rust) Implement a Light example service
 
 ### Changed
+- [#60](https://github.com/project-arete/sdk/issues/60) (Rust) Rename Connection → Client for consistency with other language SDKs
 - [#54](https://github.com/project-arete/sdk/issues/54) (Rust) Upgrade Rust 1.86.0 → 1.88.0
 
 ### Fixed
