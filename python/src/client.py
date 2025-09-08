@@ -43,7 +43,8 @@ class Client:
         return self.cache['keys']
 
     def put(self, key, value):
-        pass # TODO
+        args = [f'"{key}"', value]
+        return self.send('json', 'put', args)
 
     def send(self, format, cmd, args=[]):
         for arg in args:
