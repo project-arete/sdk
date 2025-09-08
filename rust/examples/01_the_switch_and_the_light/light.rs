@@ -19,7 +19,7 @@ pub fn main() {
     // Configure pin
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let pin = chip.get_line(GPIO23).unwrap();
-    let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, APPNAME);
+    let _pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, APPNAME);
 
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
@@ -38,4 +38,7 @@ pub fn main() {
 
     // Startup complete
     eprintln!("Switch service started");
+    loop {
+        std::thread::sleep(Duration::from_secs(1));
+    }
 }
