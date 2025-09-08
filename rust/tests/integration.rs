@@ -14,36 +14,40 @@ fn can_connect() {
 #[test]
 fn can_get_a_key() {
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let (conn, _res) = get_connection!();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    let (client, _res) = get_connection!();
+    client
+        .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
-    let _value = conn.get("abc", None);
+    let _value = client.get("abc", None);
 }
 
 #[test]
 fn can_get_stats() {
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let (conn, _res) = get_connection!();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    let (client, _res) = get_connection!();
+    client
+        .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
-    let _stats = conn.stats().unwrap();
+    let _stats = client.stats().unwrap();
 }
 
 #[test]
 fn can_get_version() {
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let (conn, _res) = get_connection!();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    let (client, _res) = get_connection!();
+    client
+        .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
-    let version = conn.version().unwrap();
+    let version = client.version().unwrap();
     assert!(!version.is_empty());
 }
 
 #[test]
 fn can_get_all_keys() {
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let (conn, _res) = get_connection!();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    let (client, _res) = get_connection!();
+    client
+        .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
-    let _keys = conn.keys();
+    let _keys = client.keys();
 }

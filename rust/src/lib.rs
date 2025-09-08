@@ -1,15 +1,15 @@
-mod connection;
+mod client;
 mod error;
 mod stats;
 mod system;
 
-pub use connection::Connection;
+pub use client::Client;
 pub use error::Error;
 pub use stats::Stats;
 use std::sync::{Arc, Mutex};
 use tungstenite::{handshake::client::Response, stream::MaybeTlsStream};
 
-pub fn connect(url: &str) -> Result<(Connection, Response), Error> {
+pub fn connect(url: &str) -> Result<(Client, Response), Error> {
     // Connect
     let (mut socket, res) = tungstenite::connect(url)?;
 
@@ -21,6 +21,6 @@ pub fn connect(url: &str) -> Result<(Connection, Response), Error> {
     }
 
     // Respond
-    let connection = Connection::new(Arc::new(Mutex::new(socket)));
-    Ok((connection, res))
+    let client = Client::new(Arc::new(Mutex::new(socket)));
+    Ok((client, res))
 }

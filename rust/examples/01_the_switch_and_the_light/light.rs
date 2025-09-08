@@ -23,14 +23,15 @@ pub fn main() {
 
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
-    let (mut conn, _res) = arete_sdk::connect("wss://dashboard.test.cns.dev:443").unwrap();
-    conn.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
+    let (mut client, _res) = arete_sdk::connect("wss://dashboard.test.cns.dev:443").unwrap();
+    client
+        .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
     eprintln!("Connected to Arete control plane");
 
     // Register this node with the control plane
-    conn.add_system().unwrap();
-    conn.add_node(NODE_ID, APPNAME, false, None).unwrap();
+    client.add_system().unwrap();
+    client.add_node(NODE_ID, APPNAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
 
     // Detect future changes in desired state, and try to actualize it
