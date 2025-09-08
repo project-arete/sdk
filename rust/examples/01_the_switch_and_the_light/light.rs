@@ -37,7 +37,7 @@ pub fn main() {
     // TODO(https://github.com/project-arete/sdk/issues/56)
 
     // Startup complete
-    eprintln!("Switch service started");
+    eprintln!("Light service started");
     loop {
         std::thread::sleep(Duration::from_secs(1));
     }
