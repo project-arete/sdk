@@ -65,4 +65,11 @@ Switch is now ON
 
 ### Run the light service
 
-TODO
+```shell
+$ cargo run --example 01-light
+Connected to Arete control plane
+Registered as node onqXVczGoymQkFc3UN6qcM on Arete control plane
+Light service started
+Light is now OFF
+Light is now ON
+```

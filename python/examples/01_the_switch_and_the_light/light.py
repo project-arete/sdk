@@ -27,8 +27,8 @@ client.add_system()
 client.add_node(NODE_ID, APPNAME)
 sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
 
-# Detect future changes in desired state, and actualize it
-# TODO
+# Detect future changes in desired state, and try to actualize it
+# TODO(https://github.com/project-arete/sdk/issues/57)
 
 # Register shutdown handling
 @atexit.register
