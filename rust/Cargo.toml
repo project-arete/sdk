@@ -25,3 +25,7 @@ version = "0.6.0"
 [[example]]
 name = "01-switch"
 path = "examples/01_the_switch_and_the_light/switch.rs"
+
+[[example]]
+name = "01-light"
+path = "examples/01_the_switch_and_the_light/light.rs"

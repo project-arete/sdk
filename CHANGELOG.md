@@ -1,6 +1,9 @@
 # Project Arete SDK Changelog
 
 ## [Unreleased]
+### Added
+- [#52](https://github.com/project-arete/sdk/issues/52) (Rust) Implement a Light example service
+
 ### Changed
 - [#54](https://github.com/project-arete/sdk/issues/54) (Rust) Upgrade Rust 1.86.0 → 1.88.0
 
