@@ -31,12 +31,12 @@ pub fn main() {
         .unwrap();
     eprintln!("Connected to Arete control plane");
 
-    // Register this node with the control plane
+    // Register this node and its context with the control plane
     client.add_system().unwrap();
     client.add_node(NODE_ID, APPNAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
-    eprintln!("Registered context {CONTEXT_ID} with node {NODE_ID} on Arete control plane");
+    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
 
     // Detect future changes in desired state, and try to actualize it
     // TODO(https://github.com/project-arete/sdk/issues/56)
