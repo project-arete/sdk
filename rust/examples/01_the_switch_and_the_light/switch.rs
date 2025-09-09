@@ -33,8 +33,9 @@ pub fn main() {
     // Register this node with the control plane
     client.add_system().unwrap();
     client.add_node(NODE_ID, APPNAME, false, None).unwrap();
-    client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
+    client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
+    eprintln!("Registered context {CONTEXT_ID} with node {NODE_ID} on Arete control plane");
 
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
