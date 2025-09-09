@@ -24,7 +24,7 @@ await client.addSystem();
 await client.addNode(NODE_ID, APPNAME, false);
 console.log(`Registered as node ${NODE_ID} on Arete control plane`);
 
-// Detect future changes in desired state, and try to actualize it
+// Detect initial desired state, plus future changes to desired state, and try to actualize it
 client.on('update', (event) => {
   let value = event.keys[DESIRED_STATE_KEY];
   if (!value) {

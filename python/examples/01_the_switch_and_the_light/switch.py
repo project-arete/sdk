@@ -23,6 +23,7 @@ ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_CLIENT)
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
+client.wait_for_open()
 sys.stderr.write('Connected to Arete control plane\n')
 
 # Register this node with the control plane
@@ -35,7 +36,7 @@ state = GPIO.input(GPIO04) == 0
 client.put(DESIRED_STATE_KEY, '1' if state else '0')
 sys.stderr.write('Switch is initially {}\n'.format('ON' if state else 'OFF'))
 
-# Detect future changes in switch state, and sync it with Arete
+# Detect initial desired state, plus future changes to desired state, and try to actualize it
 last_state = state
 def detect_change(channel):
     global last_state

@@ -20,6 +20,7 @@ ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_CLIENT)
 ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
+client.wait_for_open()
 sys.stderr.write('Connected to Arete control plane\n')
 
 # Register this node with the control plane
@@ -27,7 +28,7 @@ client.add_system()
 client.add_node(NODE_ID, APPNAME)
 sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
 
-# Detect future changes in desired state, and try to actualize it
+# Detect initial desired state, plus future changes to desired state, and try to actualize it
 # TODO(https://github.com/project-arete/sdk/issues/57)
 
 # Register shutdown handling

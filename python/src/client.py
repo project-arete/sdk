@@ -1,7 +1,9 @@
 from threading import Thread
 from websockets.sync.client import connect as websockets_connect
+from websockets.protocol import State
 import json
 import socket
+import time
 from system import get_system_id
 
 class Client:
@@ -62,6 +64,14 @@ class Client:
 
     def version(self):
         return self.cache['version']
+
+    def wait_for_open(self, timeout_secs = 5):
+        start_time = time.time()
+        while time.time() - start_time < timeout_secs:
+            if self.websocket.state == State.OPEN:
+                return
+            time.sleep(0.1)
+        raise Exception('Timed out waiting for open')
 
 def receive_messages(self):
     for message in self.websocket:

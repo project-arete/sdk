@@ -9,6 +9,7 @@
 - [#54](https://github.com/project-arete/sdk/issues/54) (Rust) Upgrade Rust 1.86.0 → 1.88.0
 
 ### Fixed
+- [#62](https://github.com/project-arete/sdk/issues/62) (Python) Examples fail to wait for open before system and node registration
 - [#51](https://github.com/project-arete/sdk/issues/51) (Python) put is not implemented
 
 ## [0.1.3] - 2025-09-05
