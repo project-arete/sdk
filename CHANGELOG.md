@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - [#56](https://github.com/project-arete/sdk/issues/56) (Rust) Support observing update event
+- [#53](https://github.com/project-arete/sdk/issues/53) (Python) Track active requests, and wait for a transaction response
 - [#52](https://github.com/project-arete/sdk/issues/52) (Rust) Implement a Light example service
 - [#26](https://github.com/project-arete/sdk/issues/26) Example services should add their situation context to the Arete Control Plane on startup
 

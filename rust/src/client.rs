@@ -289,16 +289,15 @@ impl Client {
         msg.insert("transaction".to_string(), Value::from(transaction_id));
         msg.insert("command".to_string(), Value::String(cmd));
 
-        {
-            let mut requests = self.requests.lock()?;
-            requests.insert(transaction_id, None);
-        }
-
         match format {
             Format::Json => {
                 let msg_as_json = serde_json::to_string(&msg)?;
                 let message = Message::text(msg_as_json);
                 self.send_message(message)?;
+                {
+                    let mut requests = self.requests.lock()?;
+                    requests.insert(transaction_id, None);
+                }
                 Ok(transaction_id)
             }
         }
