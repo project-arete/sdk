@@ -346,6 +346,21 @@ export class Client extends Emitter {
   }
 
   /**
+   * Add a context.
+   * @method
+   * @param {string} nodeId The globally unique node id.
+   * @param {string} id The globally unique context id.
+   * @param {string} name The human-readable context name.
+   * @returns {Promise} Returns a promise.
+   * @fulfil {string} - The response from the host.
+   * @reject {Error} - The request failed.
+   */
+  addContext(nodeId, id, name, upstream) {
+    const args = [this.#systemID, nodeId, id, name];
+    return this.#send('json', 'contexts', ...args);
+  }
+
+  /**
    * Add a node.
    * @method
    * @param {string} id The globally unique node id.
@@ -356,7 +371,7 @@ export class Client extends Emitter {
    * @reject {Error} - The request failed.
    */
   addNode(id, name, upstream) {
-    const args = [id, name, upstream, null];
+    const args = [this.#systemID, id, name, upstream, null];
     return this.#send('json', 'nodes', ...args);
   }
 

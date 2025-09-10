@@ -2,6 +2,8 @@ import { Gpio } from 'onoff';
 import { Client } from '../../index.js';
 
 const APPNAME = 'arete-sdk-01-light';
+const CONTEXT_ID = 'uRLoYsXEY7nsbs9fRdjM8A';
+const CONTEXT_NAME = 'Building 23, Office 41-B';
 const GPIO23 = 535;
 const NODE_ID = 'onqXVczGoymQkFc3UN6qcM';
 const DESIRED_STATE_KEY =
@@ -23,6 +25,8 @@ console.log('Connected to Arete control plane');
 await client.addSystem();
 await client.addNode(NODE_ID, APPNAME, false);
 console.log(`Registered as node ${NODE_ID} on Arete control plane`);
+await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
+console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`);
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it
 client.on('update', (event) => {
