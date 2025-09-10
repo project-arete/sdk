@@ -8,6 +8,8 @@ sys.path.append('../../src')
 from client import Client
 
 APPNAME = "arete-sdk-01-light"
+CONTEXT_ID = "uRLoYsXEY7nsbs9fRdjM8A"
+CONTEXT_NAME = "Building 23, Office 41-B"
 GPIO23 = 23
 NODE_ID = 'onqXVczGoymQkFc3UN6qcM'
 
@@ -23,10 +25,12 @@ client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 client.wait_for_open()
 sys.stderr.write('Connected to Arete control plane\n')
 
-# Register this node with the control plane
+# Register this node and its context with the control plane
 client.add_system()
 client.add_node(NODE_ID, APPNAME)
 sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
+client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME)
+sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane\n')
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
 # TODO(https://github.com/project-arete/sdk/issues/57)

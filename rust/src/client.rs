@@ -131,6 +131,19 @@ impl Client {
         }
     }
 
+    pub fn add_context(&mut self, node_id: &str, id: &str, name: &str) -> Result<(), Error> {
+        let system_id = system::get_system_id()?;
+        let args = vec![
+            system_id.to_string(),
+            node_id.to_string(),
+            id.to_string(),
+            name.to_string(),
+        ];
+        let transaction = self.send(Format::Json, "contexts", &args)?;
+        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        Ok(())
+    }
+
     pub fn add_node(&mut self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
         let system_id = system::get_system_id()?;
         let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };

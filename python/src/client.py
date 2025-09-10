@@ -26,8 +26,12 @@ class Client:
 
         return client
 
+    def add_context(self, node_id, id, name):
+        args = [self.system_id, node_id, id, name]
+        return self.send('json', 'contexts', args)
+
     def add_node(self, id, name, upstream=False, token=None):
-        args = [id, name, upstream]
+        args = [self.system_id, id, name, upstream]
         return self.send('json', 'nodes', args)
 
     def add_system(self, id=None, name=None):

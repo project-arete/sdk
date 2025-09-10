@@ -1,6 +1,8 @@
 #![allow(unused)]
 
 const APPNAME: &str = "arete-sdk-01-light";
+const CONTEXT_ID: &str = "uRLoYsXEY7nsbs9fRdjM8A";
+const CONTEXT_NAME: &str = "Building 23, Office 41-B";
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO23: u32 = 23;
 const NODE_ID: &str = "onqXVczGoymQkFc3UN6qcM";
@@ -29,10 +31,12 @@ pub fn main() {
         .unwrap();
     eprintln!("Connected to Arete control plane");
 
-    // Register this node with the control plane
+    // Register this node and its context with the control plane
     client.add_system().unwrap();
     client.add_node(NODE_ID, APPNAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
+    client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
+    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
 
     // Detect future changes in desired state, and try to actualize it
     // TODO(https://github.com/project-arete/sdk/issues/56)
