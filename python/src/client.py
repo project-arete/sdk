@@ -29,11 +29,13 @@ class Client:
 
     def add_context(self, node_id, id, name):
         args = [self.system_id, node_id, id, name]
-        return self.send('json', 'contexts', args)
+        transaction = self.send('json', 'contexts', args)
+        self.wait_for_response(transaction)
 
     def add_node(self, id, name, upstream=False, token=None):
         args = [self.system_id, id, name, upstream]
-        return self.send('json', 'nodes', args)
+        transaction = self.send('json', 'nodes', args)
+        self.wait_for_response(transaction)
 
     def add_system(self, id=None, name=None):
         if id is None:
@@ -78,7 +80,19 @@ class Client:
             if self.websocket.state == State.OPEN:
                 return
             time.sleep(0.1)
-        raise Exception('Timed out waiting for open')
+
+    def wait_for_response(self, transaction, timeout_secs = 5):
+        start_time = time.time()
+        while time.time() - start_time < timeout_secs:
+            if transaction not in self.requests:
+                raise Exception('No such transaction')
+            res = self.requests[transaction]
+            if res is not None:
+                if 'error' in res:
+                    raise Exception(res.error)
+                return
+            time.sleep(0.1)
+        raise Exception('Timed out waiting for response')
 
 def receive_messages(self):
     for message in self.websocket:
