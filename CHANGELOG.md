@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - [#52](https://github.com/project-arete/sdk/issues/52) (Rust) Implement a Light example service
+- [#26](https://github.com/project-arete/sdk/issues/26) (NodeJS) Example services should add their situation context to the Arete Control Plane on startup
 
 ### Changed
 - [#60](https://github.com/project-arete/sdk/issues/60) (Rust) Rename Connection → Client for consistency with other language SDKs
