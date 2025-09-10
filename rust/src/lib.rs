@@ -1,8 +1,10 @@
+mod cache;
 mod client;
 mod error;
 mod stats;
 mod system;
 
+pub use cache::Cache;
 pub use client::Client;
 pub use error::Error;
 pub use stats::Stats;

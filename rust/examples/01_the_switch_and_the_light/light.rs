@@ -16,12 +16,13 @@ pub fn main() {
 #[cfg(target_os = "linux")]
 pub fn main() {
     use gpio_cdev::{Chip, LineRequestFlags};
+    use serde_json::Value;
     use std::time::Duration;
 
     // Configure pin
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let pin = chip.get_line(GPIO23).unwrap();
-    let _pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, APPNAME);
+    let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, APPNAME).unwrap();
 
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
@@ -38,8 +39,31 @@ pub fn main() {
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
 
-    // Detect future changes in desired state, and try to actualize it
-    // TODO(https://github.com/project-arete/sdk/issues/56)
+    // Realize initial desired state
+    if let Some(value) = client.get(DESIRED_STATE_KEY, Some("0".into())).unwrap() {
+        let desired_state = match value {
+            Value::String(value) => value == "1",
+            _ => false,
+        };
+        pin_handle.set_value(if desired_state { 1 } else { 0 }).unwrap();
+        eprintln!("Light is initially {}", if desired_state { "ON" } else { "OFF" });
+    }
+
+    // Detect future changes to desired state, and try to actualize it
+    let updates_rx = client.on_update().unwrap();
+    std::thread::spawn(move || {
+        loop {
+            let event = updates_rx.recv().unwrap();
+            if let Some(value) = event.keys.get(DESIRED_STATE_KEY) {
+                let desired_state = match value {
+                    Value::String(value) => value == "1",
+                    _ => false,
+                };
+                pin_handle.set_value(if desired_state { 1 } else { 0 }).unwrap();
+                eprintln!("Light is now {}", if desired_state { "ON" } else { "OFF" });
+            }
+        }
+    });
 
     // Startup complete
     eprintln!("Light service started");
