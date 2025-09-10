@@ -2,8 +2,10 @@ mod client;
 mod error;
 mod stats;
 mod system;
+mod cache;
 
 pub use client::Client;
+pub use cache::Cache;
 pub use error::Error;
 pub use stats::Stats;
 use std::sync::{Arc, Mutex};

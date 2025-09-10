@@ -1,15 +1,16 @@
-use super::{Error, Stats, system};
+use super::{Error, Stats, system, Cache};
 use crate::stats::ConnectionState;
 use serde::Deserialize;
 use serde_json::Value;
-use std::io::ErrorKind;
-use std::time::{Duration, SystemTime};
 use std::{
+    io::ErrorKind,
+    time::{Duration, SystemTime},
     collections::HashMap,
     net::TcpStream,
     sync::{
         Arc, Mutex,
         atomic::{AtomicU64, Ordering},
+        mpsc::{self, Receiver, Sender},
     },
 };
 use strum_macros::{AsRefStr, Display};
@@ -34,13 +35,7 @@ pub struct Client {
     next_transaction_id: AtomicU64,
     requests: Arc<Mutex<HashMap<u64, Option<Response>>>>,
     socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>,
-}
-
-#[derive(Debug, Default, Deserialize)]
-struct Cache {
-    version: String,
-    stats: Stats,
-    keys: HashMap<String, Value>,
+    subscribers: Arc<Mutex<Vec<Sender<Cache>>>>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -60,16 +55,51 @@ struct SparseCache {
     keys: Option<HashMap<String, Value>>,
 }
 
+impl From<SparseCache> for Cache {
+    fn from(other: SparseCache) -> Self {
+        let mut cache = Cache::default();
+        if let Some(stats) = other.stats {
+            if let Some(started) = stats.started {
+                cache.stats.started = started.clone();
+            }
+            if let Some(reads) = stats.reads {
+                cache.stats.reads = reads;
+            }
+            if let Some(writes) = stats.writes {
+                cache.stats.writes = writes;
+            }
+            if let Some(updates) = stats.updates {
+                cache.stats.updates = updates;
+            }
+            if let Some(errors) = stats.errors {
+                cache.stats.errors = errors;
+            }
+            if let Some(connection) = stats.connection {
+                cache.stats.connection = connection.clone();
+            }
+        }
+        if let Some(version) = other.version {
+            cache.version = version.clone();
+        }
+        if let Some(keys) = other.keys {
+            cache.keys = keys.clone();
+        }
+        cache
+    }
+}
+
 impl Client {
     pub(crate) fn new(socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>) -> Self {
         let next_transaction_id = AtomicU64::new(1);
         let cache = Arc::new(Mutex::new(Cache::default()));
         let requests = Arc::new(Mutex::new(HashMap::new()));
+        let subscribers = Arc::new(Mutex::<Vec<Sender<Cache>>>::new(vec![]));
 
         // Spawn a thread to handle incoming messages
         let socket_2 = socket.clone();
         let cache_2 = cache.clone();
         let requests_2 = requests.clone();
+        let subscribers_2 = subscribers.clone();
         std::thread::spawn(move || {
             loop {
                 let maybe_message = {
@@ -115,9 +145,19 @@ impl Client {
                         continue;
                     }
 
+                    // Cache the new update
                     let payload: SparseCache = serde_json::from_slice(message.as_bytes()).unwrap();
                     if let Ok(mut cache) = cache_2.lock() {
                         Self::merge(&mut cache, &payload);
+                    }
+
+                    // Notify subscribers of the new update
+                    {
+                        let subscribers = subscribers_2.lock().unwrap();
+                        let event: Cache = payload.into();
+                        for tx in subscribers.iter() {
+                            tx.send(event.clone()).unwrap();
+                        }
                     }
                 }
             }
@@ -128,6 +168,7 @@ impl Client {
             next_transaction_id,
             requests,
             socket,
+            subscribers,
         }
     }
 
@@ -221,6 +262,13 @@ impl Client {
                 target.keys.insert(k.to_string(), v.clone());
             }
         }
+    }
+
+    pub fn on_update(&mut self) -> Result<Receiver<Cache>, Error> {
+        let (tx, rx) = mpsc::channel();
+        let mut subscribers = self.subscribers.lock()?;
+        subscribers.push(tx);
+        Ok(rx)
     }
 
     pub fn put(&mut self, key: &str, value: &str) -> Result<(), Error> {
