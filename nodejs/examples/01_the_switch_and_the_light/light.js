@@ -42,7 +42,7 @@ client.on('update', (event) => {
       throw err;
     }
   });
-  console.log('New desired state is', desired_state ? 'ON' : 'OFF');
+  console.log('Light is now', desired_state ? 'ON' : 'OFF');
 });
 
 // Register shutdown handling

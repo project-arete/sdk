@@ -1,17 +1,17 @@
-use super::{Error, Stats, system, Cache};
+use super::{Cache, Error, Stats, system};
 use crate::stats::ConnectionState;
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
-    io::ErrorKind,
-    time::{Duration, SystemTime},
     collections::HashMap,
+    io::ErrorKind,
     net::TcpStream,
     sync::{
         Arc, Mutex,
         atomic::{AtomicU64, Ordering},
         mpsc::{self, Receiver, Sender},
     },
+    time::{Duration, SystemTime},
 };
 use strum_macros::{AsRefStr, Display};
 use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
