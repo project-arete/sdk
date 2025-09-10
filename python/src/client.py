@@ -97,4 +97,9 @@ class Client:
 def receive_messages(self):
     for message in self.websocket:
         data = json.loads(message)
+        if 'transaction' in data:
+            transaction = data['transaction']
+            if 'response' in data:
+                if data['response'] == '':
+                    self.requests[transaction] = {'error': None}
         self.cache.update(data)
