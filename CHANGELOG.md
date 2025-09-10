@@ -3,13 +3,14 @@
 ## [Unreleased]
 ### Added
 - [#52](https://github.com/project-arete/sdk/issues/52) (Rust) Implement a Light example service
-- [#26](https://github.com/project-arete/sdk/issues/26) (NodeJS) Example services should add their situation context to the Arete Control Plane on startup
+- [#26](https://github.com/project-arete/sdk/issues/26) Example services should add their situation context to the Arete Control Plane on startup
 
 ### Changed
 - [#60](https://github.com/project-arete/sdk/issues/60) (Rust) Rename Connection → Client for consistency with other language SDKs
 - [#54](https://github.com/project-arete/sdk/issues/54) (Rust) Upgrade Rust 1.86.0 → 1.88.0
 
 ### Fixed
+- [#65](https://github.com/project-arete/sdk/issues/65) (Rust) The catalog entry at crates.io fails to link to this Git repo
 - [#62](https://github.com/project-arete/sdk/issues/62) (Python) Examples fail to wait for open before system and node registration
 - [#51](https://github.com/project-arete/sdk/issues/51) (Python) put is not implemented
 

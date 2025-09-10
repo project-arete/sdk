@@ -4,6 +4,7 @@ description = "The Project Arete SDK"
 authors = ["Arete Developers <arete@padi.io>"]
 keywords = ["padi", "arete", "smart-buildings", "iot"]
 categories = ["network-programming", "api-bindings"]
+repository = "https://github.com/project-arete/sdk.git"
 version = "0.1.3"
 homepage = "https://padi.io"
 edition = "2024"
