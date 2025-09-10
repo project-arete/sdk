@@ -9,6 +9,7 @@ from system import get_system_id
 class Client:
     def __init__(self, websocket):
         self.cache = {}
+        self.requests = {}
         self.system_id = get_system_id()
         self.transaction = 1
         self.websocket = websocket
@@ -61,7 +62,9 @@ class Client:
             'format': format,
             'command': cmd,
         })
-        return self.websocket.send(message)
+        res = self.websocket.send(message)
+        self.requests[self.transaction] = None
+        return res
 
     def stats(self):
         return self.cache['stats']
