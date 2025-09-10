@@ -64,9 +64,9 @@ class Client:
             'format': format,
             'command': cmd,
         })
-        res = self.websocket.send(message)
+        self.websocket.send(message)
         self.requests[self.transaction] = None
-        return res
+        return self.transaction
 
     def stats(self):
         return self.cache['stats']
@@ -86,10 +86,12 @@ class Client:
         while time.time() - start_time < timeout_secs:
             if transaction not in self.requests:
                 raise Exception('No such transaction')
-            res = self.requests[transaction]
-            if res is not None:
-                if 'error' in res:
-                    raise Exception(res.error)
+            response = self.requests[transaction]
+            if response is not None:
+                if 'error' in response:
+                    error = response['error']
+                    if error is not None:
+                        raise Exception(error)
                 return
             time.sleep(0.1)
         raise Exception('Timed out waiting for response')
@@ -98,8 +100,9 @@ def receive_messages(self):
     for message in self.websocket:
         data = json.loads(message)
         if 'transaction' in data:
-            transaction = data['transaction']
+            transaction = int(data['transaction'])
             if 'response' in data:
-                if data['response'] == '':
+                response = data['response']
+                if response == '':
                     self.requests[transaction] = {'error': None}
         self.cache.update(data)
