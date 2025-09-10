@@ -26,7 +26,9 @@ await client.addSystem();
 await client.addNode(NODE_ID, APPNAME, false);
 console.log(`Registered as node ${NODE_ID} on Arete control plane`);
 await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
-console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`);
+console.log(
+  `Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`,
+);
 
 // Read initial switch state, and sync it with Arete
 let state = pin.readSync();

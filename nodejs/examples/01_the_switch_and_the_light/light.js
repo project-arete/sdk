@@ -26,7 +26,9 @@ await client.addSystem();
 await client.addNode(NODE_ID, APPNAME, false);
 console.log(`Registered as node ${NODE_ID} on Arete control plane`);
 await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
-console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`);
+console.log(
+  `Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`,
+);
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it
 client.on('update', (event) => {
