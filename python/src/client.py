@@ -63,26 +63,27 @@ class Client:
     def send(self, format, cmd, args=[]):
         for arg in args:
             cmd = f'{cmd} "{arg}"'
+        transaction = self.transaction
         self.transaction += 1
         message = json.dumps({
-            'transaction': self.transaction,
+            'transaction': transaction,
             'format': format,
             'command': cmd,
         })
         self.websocket.send(message)
-        self.requests[self.transaction] = None
-        return self.transaction
+        self.requests[transaction] = None
+        return transaction
 
     def stats(self):
-        return self.cache['stats']
+        return self.cache.get('stats', None)
 
     def version(self):
-        return self.cache['version']
+        return self.cache.get('version', None)
 
     def wait_for_open(self, timeout_secs = 5):
         start_time = time.time()
         while time.time() - start_time < timeout_secs:
-            if self.websocket.state == State.OPEN:
+            if self.websocket.state == State.OPEN and self.version() is not None:
                 return
             time.sleep(0.1)
 
