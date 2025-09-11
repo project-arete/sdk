@@ -201,6 +201,19 @@ impl Client {
         Ok(())
     }
 
+    pub fn add_profile(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
+        let system_id = system::get_system_id()?;
+        let args = vec![
+            system_id.to_string(),
+            node_id.to_string(),
+            context_id.to_string(),
+            profile.to_string(),
+        ];
+        let transaction = self.send(Format::Json, "providers", &args)?;
+        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        Ok(())
+    }
+
     pub fn add_system(&mut self) -> Result<(), Error> {
         let id = system::get_system_id()?;
         let name = hostname::get()?.to_str().unwrap().to_string();
