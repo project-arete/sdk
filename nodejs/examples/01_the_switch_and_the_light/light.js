@@ -1,13 +1,17 @@
 import { Gpio } from 'onoff';
 import { Client } from '../../index.js';
 
-const APPNAME = 'arete-sdk-01-light';
-const CONTEXT_ID = 'uRLoYsXEY7nsbs9fRdjM8A';
-const CONTEXT_NAME = 'Building 23, Office 41-B';
 const GPIO23 = 535;
-const NODE_ID = 'onqXVczGoymQkFc3UN6qcM';
 const DESIRED_STATE_KEY =
   'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState';
+
+const CONTEXT_ID = 'uRLoYsXEY7nsbs9fRdjM8A';
+const CONTEXT_NAME = 'Building 23, Office 41-B';
+
+const NODE_ID = 'onqXVczGoymQkFc3UN6qcM';
+const NODE_NAME = 'arete-sdk-01-light';
+
+const PADI_LIGHT_PROFILE = 'padi.light';
 
 // Configure pin for output
 let pin = new Gpio(GPIO23, 'out');
@@ -21,13 +25,19 @@ let client = new Client({
 await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
 
-// Register this node with the control plane
+// Register this node and its context with the control plane
 await client.addSystem();
-await client.addNode(NODE_ID, APPNAME, false);
+await client.addNode(NODE_ID, NODE_NAME, false);
 console.log(`Registered as node ${NODE_ID} on Arete control plane`);
 await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
 console.log(
   `Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`,
+);
+
+// Register the "padi.light" profile with the context
+await client.addProfile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE)
+console.log(
+    `Registered profile ${PADI_LIGHT_PROFILE} for context ${CONTEXT_ID} on Arete control plane`,
 );
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it

@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- [#69](https://github.com/project-arete/sdk/issues/69) Example services should register the "padi.light" profile with their context on the Arete Control Plane on startup
 - [#56](https://github.com/project-arete/sdk/issues/56) (Rust) Support observing update event
 - [#53](https://github.com/project-arete/sdk/issues/53) (Python) Track active requests, and wait for a transaction response
 - [#52](https://github.com/project-arete/sdk/issues/52) (Rust) Implement a Light example service
