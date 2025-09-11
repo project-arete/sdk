@@ -35,9 +35,9 @@ console.log(
 );
 
 // Register the "padi.light" profile with the context
-await client.addProfile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE)
+await client.addProfile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
 console.log(
-    `Registered profile ${PADI_LIGHT_PROFILE} for context ${CONTEXT_ID} on Arete control plane`,
+  `Registered profile ${PADI_LIGHT_PROFILE} for context ${CONTEXT_ID} on Arete control plane`,
 );
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it
