@@ -37,6 +37,11 @@ class Client:
         transaction = self.send('json', 'nodes', args)
         self.wait_for_response(transaction)
 
+    def add_profile(self, node_id, context_id, profile):
+        args = [self.system_id, node_id, context_id, profile]
+        transaction = self.send('json', 'providers', args)
+        self.wait_for_response(transaction)
+
     def add_system(self, id=None, name=None):
         if id is None:
             id = self.system_id
