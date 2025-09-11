@@ -167,7 +167,7 @@ export class Client extends Emitter {
    * The System ID.
    * @private
    */
-  #systemID;
+  #systemId;
 
   /**
    * Creates a new CNS client.
@@ -180,7 +180,7 @@ export class Client extends Emitter {
   constructor(options = {}) {
     super();
 
-    this.#systemID = get_system_id();
+    this.#systemId = get_system_id();
 
     this.#options = {
       protocol:
@@ -356,7 +356,7 @@ export class Client extends Emitter {
    * @reject {Error} - The request failed.
    */
   addContext(nodeId, id, name, upstream) {
-    const args = [this.#systemID, nodeId, id, name];
+    const args = [this.#systemId, nodeId, id, name];
     return this.#send('json', 'contexts', ...args);
   }
 
@@ -371,8 +371,23 @@ export class Client extends Emitter {
    * @reject {Error} - The request failed.
    */
   addNode(id, name, upstream) {
-    const args = [this.#systemID, id, name, upstream, null];
+    const args = [this.#systemId, id, name, upstream, null];
     return this.#send('json', 'nodes', ...args);
+  }
+
+  /**
+   * Add a provider.
+   * @method
+   * @param {string} nodeId The globally unique node id.
+   * @param {string} contextId The globally unique context id.
+   * @param {string} profile The profile identifier.
+   * @returns {Promise} Returns a promise.
+   * @fulfil {string} - The response from the host.
+   * @reject {Error} - The request failed.
+   */
+  addProfile(nodeId, contextId, profile) {
+    const args = [this.#systemId, nodeId, contextId, profile];
+    return this.#send('json', 'providers', ...args);
   }
 
   /**
@@ -385,7 +400,7 @@ export class Client extends Emitter {
    * @reject {Error} - The request failed.
    */
   addSystem(id, name, upstream) {
-    id = id || this.#systemID;
+    id = id || this.#systemId;
     name = name || os.hostname();
     const args = [id, name];
     return this.#send('json', 'systems', ...args);

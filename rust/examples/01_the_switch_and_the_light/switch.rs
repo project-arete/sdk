@@ -1,12 +1,16 @@
 #![allow(unused)]
 
-const APPNAME: &str = "arete-sdk-01-switch";
-const CONTEXT_ID: &str = "uRLoYsXEY7nsbs9fRdjM8A";
-const CONTEXT_NAME: &str = "Building 23, Office 41-B";
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO04: u32 = 4;
-const NODE_ID: &str = "ozr9fZbU8i7hMdjEjuTS2o";
 const DESIRED_STATE_KEY: &str = "cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState";
+
+const CONTEXT_ID: &str = "uRLoYsXEY7nsbs9fRdjM8A";
+const CONTEXT_NAME: &str = "Building 23, Office 41-B";
+
+const NODE_ID: &str = "ozr9fZbU8i7hMdjEjuTS2o";
+const NODE_NAME: &str = "arete-sdk-01-switch";
+
+const PADI_LIGHT_PROFILE: &str = "padi.light";
 
 #[cfg(not(target_os = "linux"))]
 pub fn main() {
@@ -32,15 +36,19 @@ pub fn main() {
 
     // Register this node and its context with the control plane
     client.add_system().unwrap();
-    client.add_node(NODE_ID, APPNAME, false, None).unwrap();
+    client.add_node(NODE_ID, NODE_NAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
 
+    // Register the "padi.light" profile with the context
+    client.add_profile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+    eprintln!("Registered profile {PADI_LIGHT_PROFILE} for context {CONTEXT_ID} on Arete control plane");
+
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
     let state = pin
-        .request(line_request_flags.clone(), 0, APPNAME)
+        .request(line_request_flags.clone(), 0, NODE_NAME)
         .unwrap()
         .get_value()
         .unwrap()
@@ -53,7 +61,7 @@ pub fn main() {
 
     // Detect future changes in switch state, and sync it with Arete
     let mut pin_events = pin
-        .events(line_request_flags, EventRequestFlags::BOTH_EDGES, APPNAME)
+        .events(line_request_flags, EventRequestFlags::BOTH_EDGES, NODE_NAME)
         .unwrap();
     loop {
         let event = pin_events.get_event().unwrap();

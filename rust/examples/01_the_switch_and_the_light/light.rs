@@ -1,12 +1,16 @@
 #![allow(unused)]
 
-const APPNAME: &str = "arete-sdk-01-light";
-const CONTEXT_ID: &str = "uRLoYsXEY7nsbs9fRdjM8A";
-const CONTEXT_NAME: &str = "Building 23, Office 41-B";
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO23: u32 = 23;
-const NODE_ID: &str = "onqXVczGoymQkFc3UN6qcM";
 const DESIRED_STATE_KEY: &str = "cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState";
+
+const NODE_ID: &str = "onqXVczGoymQkFc3UN6qcM";
+const NODE_NAME: &str = "arete-sdk-01-light";
+
+const CONTEXT_ID: &str = "uRLoYsXEY7nsbs9fRdjM8A";
+const CONTEXT_NAME: &str = "Building 23, Office 41-B";
+
+const PADI_LIGHT_PROFILE: &str = "padi.light";
 
 #[cfg(not(target_os = "linux"))]
 pub fn main() {
@@ -22,7 +26,7 @@ pub fn main() {
     // Configure pin
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let pin = chip.get_line(GPIO23).unwrap();
-    let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, APPNAME).unwrap();
+    let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, NODE_NAME).unwrap();
 
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
@@ -34,10 +38,14 @@ pub fn main() {
 
     // Register this node and its context with the control plane
     client.add_system().unwrap();
-    client.add_node(NODE_ID, APPNAME, false, None).unwrap();
+    client.add_node(NODE_ID, NODE_NAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID} on Arete control plane");
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
+
+    // Register the "padi.light" profile with the context
+    client.add_profile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+    eprintln!("Registered profile {PADI_LIGHT_PROFILE} for context {CONTEXT_ID} on Arete control plane");
 
     // Realize initial desired state
     if let Some(value) = client.get(DESIRED_STATE_KEY, Some("0".into())).unwrap() {
