@@ -10,7 +10,6 @@ sys.path.append('../../src')
 from client import Client
 
 GPIO04 = 4
-DESIRED_STATE_KEY = 'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState'
 
 NODE_ID = 'ozr9fZbU8i7hMdjEjuTS2o'
 NODE_NAME = 'arete-sdk-01-switch'
@@ -45,7 +44,7 @@ sys.stderr.write(f'Registered as provider of state for {PADI_LIGHT_PROFILE} prof
 
 # Read initial switch state, and sync it with Arete
 state = GPIO.input(GPIO04) == 0
-client.put(DESIRED_STATE_KEY, '1' if state else '0')
+client.put_property(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", '1' if state else '0')
 sys.stderr.write('Switch is initially {}\n'.format('ON' if state else 'OFF'))
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
@@ -55,7 +54,7 @@ def detect_change(channel):
     while True:
         state = GPIO.input(GPIO04) == 0
         if state != last_state:
-            client.put(DESIRED_STATE_KEY, '1' if state else '0')
+            client.put_property(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", '1' if state else '0')
             sys.stderr.write('Switch is now {}\n'.format('ON' if state else 'OFF'))
             last_state = state
         else:

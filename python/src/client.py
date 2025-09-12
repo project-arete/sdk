@@ -65,6 +65,10 @@ class Client:
         args = [f'"{key}"', value]
         return self.send('json', 'put', args)
 
+    def put_property(self, node_id, context_id, profile, property, value):
+        key = f'cns/{self.system_id}/nodes/{node_id}/contexts/{context_id}/provider/{profile}/properties/{property}'
+        self.put(key, value)
+
     def send(self, format, cmd, args=[]):
         for arg in args:
             cmd = f'{cmd} "{arg}"'
