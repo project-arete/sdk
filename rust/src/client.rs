@@ -172,6 +172,19 @@ impl Client {
         }
     }
 
+    pub fn add_consumer(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
+        let system_id = system::get_system_id()?;
+        let args = vec![
+            system_id.to_string(),
+            node_id.to_string(),
+            context_id.to_string(),
+            profile.to_string(),
+        ];
+        let transaction = self.send(Format::Json, "consumers", &args)?;
+        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        Ok(())
+    }
+
     pub fn add_context(&mut self, node_id: &str, id: &str, name: &str) -> Result<(), Error> {
         let system_id = system::get_system_id()?;
         let args = vec![
@@ -201,7 +214,7 @@ impl Client {
         Ok(())
     }
 
-    pub fn add_profile(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
+    pub fn add_provider(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
         let system_id = system::get_system_id()?;
         let args = vec![
             system_id.to_string(),

@@ -41,9 +41,9 @@ pub fn main() {
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
 
-    // Register the "padi.light" profile with the context
-    client.add_profile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
-    eprintln!("Registered profile {PADI_LIGHT_PROFILE} for context {CONTEXT_ID} on Arete control plane");
+    // Register as a provider of state for the "padi.light" profile
+    client.add_provider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+    eprintln!("Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID} on Arete control plane");
 
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
