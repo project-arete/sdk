@@ -34,10 +34,10 @@ console.log(
   `Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`,
 );
 
-// Register the "padi.light" profile with the context
-await client.addProfile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+// Register as a consumer of state for the "padi.light" profile
+await client.addConsumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
 console.log(
-  `Registered profile ${PADI_LIGHT_PROFILE} for context ${CONTEXT_ID} on Arete control plane`,
+  `Registered as a consumer of state for ${PADI_LIGHT_PROFILE} profile for context ${CONTEXT_ID}`,
 );
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it

@@ -45,7 +45,7 @@ pub fn main() {
 
     // Register as a consumer of state for the "padi.light" profile
     client.add_consumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
-    eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID} on Arete control plane");
+    eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Realize initial desired state
     if let Some(value) = client.get(DESIRED_STATE_KEY, Some("0".into())).unwrap() {
