@@ -27,6 +27,11 @@ class Client:
 
         return client
 
+    def add_consumer(self, node_id, context_id, profile):
+        args = [self.system_id, node_id, context_id, profile]
+        transaction = self.send('json', 'consumers', args)
+        self.wait_for_response(transaction)
+
     def add_context(self, node_id, id, name):
         args = [self.system_id, node_id, id, name]
         transaction = self.send('json', 'contexts', args)
@@ -37,7 +42,7 @@ class Client:
         transaction = self.send('json', 'nodes', args)
         self.wait_for_response(transaction)
 
-    def add_profile(self, node_id, context_id, profile):
+    def add_provider(self, node_id, context_id, profile):
         args = [self.system_id, node_id, context_id, profile]
         transaction = self.send('json', 'providers', args)
         self.wait_for_response(transaction)
