@@ -62,7 +62,7 @@ class Client:
         return self.cache['keys']
 
     def put(self, key, value):
-        args = [f'"{key}"', value]
+        args = [key, value]
         return self.send('json', 'put', args)
 
     def put_property(self, node_id, context_id, profile, property, value):
