@@ -2,8 +2,6 @@ import { Gpio } from 'onoff';
 import { Client } from '../../index.js';
 
 const GPIO04 = 516;
-const DESIRED_STATE_KEY =
-  'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState';
 
 const NODE_ID = 'ozr9fZbU8i7hMdjEjuTS2o';
 const NODE_NAME = 'arete-sdk-01-switch';
@@ -40,7 +38,7 @@ console.log(
 
 // Read initial switch state, and sync it with Arete
 let state = pin.readSync();
-client.put(DESIRED_STATE_KEY, state ? '1' : '0');
+client.putProperty(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", state ? '1' : '0');
 console.log('Switch is initially', state ? 'ON' : 'OFF');
 
 // Detect future changes in switch state, and sync it with Arete
@@ -48,7 +46,7 @@ pin.watch((err, state) => {
   if (err) {
     throw err;
   }
-  client.put(DESIRED_STATE_KEY, state ? '1' : '0');
+  client.putProperty(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", state ? '1' : '0');
   console.log('Switch is now', state ? 'ON' : 'OFF');
 });
 
