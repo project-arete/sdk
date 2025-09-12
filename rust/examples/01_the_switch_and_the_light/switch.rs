@@ -2,7 +2,6 @@
 
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO04: u32 = 4;
-const DESIRED_STATE_KEY: &str = "cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState";
 
 const CONTEXT_ID: &str = "uRLoYsXEY7nsbs9fRdjM8A";
 const CONTEXT_NAME: &str = "Building 23, Office 41-B";
@@ -53,7 +52,13 @@ pub fn main() {
         .get_value()
         .unwrap()
         > 0;
-    client.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
+    client.put_property(
+        NODE_ID,
+        CONTEXT_ID,
+        PADI_LIGHT_PROFILE,
+        "sOut",
+        if state { "1" } else { "0" },
+    );
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
     // Startup complete
@@ -66,7 +71,13 @@ pub fn main() {
     loop {
         let event = pin_events.get_event().unwrap();
         let state = event.event_type() == EventType::FallingEdge;
-        client.put(DESIRED_STATE_KEY, if state { "1" } else { "0" });
+        client.put_property(
+            NODE_ID,
+            CONTEXT_ID,
+            PADI_LIGHT_PROFILE,
+            "sOut",
+            if state { "1" } else { "0" },
+        );
         eprintln!("Switch is now {}", if state { "ON" } else { "OFF" });
     }
 }

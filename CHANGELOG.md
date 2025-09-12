@@ -12,6 +12,7 @@
 ### Changed
 - [#60](https://github.com/project-arete/sdk/issues/60) (Rust) Rename Connection → Client for consistency with other language SDKs
 - [#54](https://github.com/project-arete/sdk/issues/54) (Rust) Upgrade Rust 1.86.0 → 1.88.0
+- [#28](https://github.com/project-arete/sdk/issues/28) Example Switch services should derive their connection key from node/context/role/profile/property values
 
 ### Fixed
 - [#65](https://github.com/project-arete/sdk/issues/65) (Rust) The catalog entry at crates.io fails to link to this Git repo

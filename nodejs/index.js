@@ -301,6 +301,23 @@ export class Client extends Emitter {
   }
 
   /**
+   * As a provider, put a property.
+   * @method
+   * @param {string} nodeId The globally unique node id.
+   * @param {string} contextId The globally unique context id.
+   * @param {string} profile The human-readable context name.
+   * @param {string} property The property name.
+   * @param {string} value The value.
+   * @returns {Promise} Returns a promise.
+   * @fulfil {string} - The response from the host.
+   * @reject {Error} - The request failed.
+   */
+  putProperty(nodeId, contextId, profile, property, value) {
+    const key = `cns/${this.#systemId}/nodes/${nodeId}/contexts/${contextId}/provider/${profile}/properties/${property}`;
+    return this.put(key, value);
+  }
+
+  /**
    * Select matching keys.
    * @method
    * @param {string} filter The key filter.
