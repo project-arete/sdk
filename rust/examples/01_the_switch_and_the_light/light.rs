@@ -39,13 +39,13 @@ pub fn main() {
     // Register this node and its context with the control plane
     client.add_system().unwrap();
     client.add_node(NODE_ID, NODE_NAME, false, None).unwrap();
-    eprintln!("Registered as node {NODE_ID} on Arete control plane");
+    eprintln!("Registered as node {NODE_ID}");
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
-    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane");
+    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID}");
 
-    // Register the "padi.light" profile with the context
-    client.add_profile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
-    eprintln!("Registered profile {PADI_LIGHT_PROFILE} for context {CONTEXT_ID} on Arete control plane");
+    // Register as a consumer of state for the "padi.light" profile
+    client.add_consumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+    eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Realize initial desired state
     if let Some(value) = client.get(DESIRED_STATE_KEY, Some("0".into())).unwrap() {

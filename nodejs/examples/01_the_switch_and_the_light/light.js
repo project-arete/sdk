@@ -28,16 +28,14 @@ console.log('Connected to Arete control plane');
 // Register this node and its context with the control plane
 await client.addSystem();
 await client.addNode(NODE_ID, NODE_NAME, false);
-console.log(`Registered as node ${NODE_ID} on Arete control plane`);
+console.log(`Registered as node ${NODE_ID}`);
 await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
-console.log(
-  `Registered context ${CONTEXT_ID} for node ${NODE_ID} on Arete control plane`,
-);
+console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID}`);
 
-// Register the "padi.light" profile with the context
-await client.addProfile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+// Register as a consumer of state for the "padi.light" profile
+await client.addConsumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
 console.log(
-  `Registered profile ${PADI_LIGHT_PROFILE} for context ${CONTEXT_ID} on Arete control plane`,
+  `Registered as a consumer of state for ${PADI_LIGHT_PROFILE} profile for context ${CONTEXT_ID}`,
 );
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it

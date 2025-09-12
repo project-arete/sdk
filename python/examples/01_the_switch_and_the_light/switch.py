@@ -35,13 +35,13 @@ sys.stderr.write('Connected to Arete control plane\n')
 # Register this node and its context with the control plane
 client.add_system()
 client.add_node(NODE_ID, NODE_NAME, False)
-sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
+sys.stderr.write(f'Registered as node {NODE_ID}\n')
 client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME)
-sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane\n')
+sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
 
-# Register the "padi.light" profile with the context
-client.add_profile(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
-sys.stderr.write(f'Registered profile {PADI_LIGHT_PROFILE} for context {CONTEXT_ID} on Arete control plane\n')
+# Register as provider of state for the "padi.light" profile
+client.add_provider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+sys.stderr.write(f'Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
 # Read initial switch state, and sync it with Arete
 state = GPIO.input(GPIO04) == 0

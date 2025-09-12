@@ -346,6 +346,21 @@ export class Client extends Emitter {
   }
 
   /**
+   * Add a consumer.
+   * @method
+   * @param {string} nodeId The globally unique node id.
+   * @param {string} contextId The globally unique context id.
+   * @param {string} profile The profile identifier.
+   * @returns {Promise} Returns a promise.
+   * @fulfil {string} - The response from the host.
+   * @reject {Error} - The request failed.
+   */
+  addConsumer(nodeId, contextId, profile) {
+    const args = [this.#systemId, nodeId, contextId, profile];
+    return this.#send('json', 'consumers', ...args);
+  }
+
+  /**
    * Add a context.
    * @method
    * @param {string} nodeId The globally unique node id.
@@ -385,7 +400,7 @@ export class Client extends Emitter {
    * @fulfil {string} - The response from the host.
    * @reject {Error} - The request failed.
    */
-  addProfile(nodeId, contextId, profile) {
+  addProvider(nodeId, contextId, profile) {
     const args = [this.#systemId, nodeId, contextId, profile];
     return this.#send('json', 'providers', ...args);
   }

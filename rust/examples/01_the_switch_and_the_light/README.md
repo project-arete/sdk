@@ -68,7 +68,7 @@ Switch is now ON
 ```shell
 $ cargo run --example 01-light
 Connected to Arete control plane
-Registered as node onqXVczGoymQkFc3UN6qcM on Arete control plane
+Registered as node onqXVczGoymQkFc3UN6qcM
 Light is initially ON
 Light service started
 Light is now OFF
