@@ -312,7 +312,7 @@ export class Client extends Emitter {
    * @fulfil {string} - The response from the host.
    * @reject {Error} - The request failed.
    */
-  putProperty(nodeId, id, name, upstream) {
+  putProperty(nodeId, contextId, profile, property, value) {
     const key = `cns/${this.#systemId}/nodes/${nodeId}/contexts/${contextId}/provider/${profile}/properties/${property}`;
     return this.put(key, value);
   }
