@@ -32,9 +32,9 @@ sys.stderr.write('Connected to Arete control plane\n')
 # Register this node and its context with the control plane
 client.add_system()
 client.add_node(NODE_ID, NODE_NAME)
-sys.stderr.write(f'Registered as node {NODE_ID} on Arete control plane\n')
+sys.stderr.write(f'Registered as node {NODE_ID}\n')
 client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME)
-sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID} on Arete control plane\n')
+sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
 
 # Register as a consumer of state for the "padi.light" profile
 client.add_consumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);

@@ -57,6 +57,9 @@ The switch service needs to run as root in order to access GPIO edge triggers.
 ```shell
 $ sudo node switch.js 
 Connected to Arete control plane
+Registered as node onqXVczGoymQkFc3UN6qcM
+Registered context uRLoYsXEY7nsbs9fRdjM8A for node onqXVczGoymQkFc3UN6qcM
+Registered as a consumer of state for padi.light profile for context uRLoYsXEY7nsbs9fRdjM8A
 Switch is initially ON
 Switch service started
 Switch is now OFF
@@ -69,6 +72,9 @@ Switch is now ON
 ```shell
 $ node light.js 
 Connected to Arete control plane
+Registered as node onqXVczGoymQkFc3UN6qcM
+Registered context uRLoYsXEY7nsbs9fRdjM8A for node onqXVczGoymQkFc3UN6qcM
+Registered as consumer of state for padi.light profile for context uRLoYsXEY7nsbs9fRdjM8A
 Light service started
 Light is now OFF
 Light is now ON
