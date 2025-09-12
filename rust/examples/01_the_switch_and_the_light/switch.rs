@@ -52,7 +52,13 @@ pub fn main() {
         .get_value()
         .unwrap()
         > 0;
-    client.put_property(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", if state { "1" } else { "0" });
+    client.put_property(
+        NODE_ID,
+        CONTEXT_ID,
+        PADI_LIGHT_PROFILE,
+        "sOut",
+        if state { "1" } else { "0" },
+    );
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
     // Startup complete
@@ -65,7 +71,13 @@ pub fn main() {
     loop {
         let event = pin_events.get_event().unwrap();
         let state = event.event_type() == EventType::FallingEdge;
-        client.put_property(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", if state { "1" } else { "0" });
+        client.put_property(
+            NODE_ID,
+            CONTEXT_ID,
+            PADI_LIGHT_PROFILE,
+            "sOut",
+            if state { "1" } else { "0" },
+        );
         eprintln!("Switch is now {}", if state { "ON" } else { "OFF" });
     }
 }
