@@ -298,7 +298,7 @@ impl Client {
     }
 
     pub fn put(&mut self, key: &str, value: &str) -> Result<(), Error> {
-        let args = vec![format!("\"{key}\""), value.to_string()];
+        let args = vec![key.to_string(), value.to_string()];
         let _ = self.send(Format::Json, "put", &args)?;
         Ok(())
     }
