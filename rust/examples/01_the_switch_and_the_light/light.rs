@@ -37,7 +37,7 @@ pub fn main() {
     eprintln!("Connected to Arete control plane");
 
     // Register this node and its context with the control plane
-    client.add_system().unwrap();
+    let _system = client.system().unwrap();
     client.add_node(NODE_ID, NODE_NAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID}");
     client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();

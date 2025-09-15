@@ -6,6 +6,7 @@ mod system;
 
 pub use cache::Cache;
 pub use client::Client;
+pub use system::System;
 pub use error::Error;
 pub use stats::Stats;
 use std::sync::{Arc, Mutex};

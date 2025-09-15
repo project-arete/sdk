@@ -1,5 +1,4 @@
-use super::{Cache, Error, Stats, system};
-use crate::stats::ConnectionState;
+use crate::{Cache, Error, system, Stats, System, stats::ConnectionState};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -15,9 +14,8 @@ use std::{
 };
 use strum_macros::{AsRefStr, Display};
 use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
-use uuid::Uuid;
 
-const DEFAULT_TIMEOUT_SECS: u64 = 5;
+pub const DEFAULT_TIMEOUT_SECS: u64 = 5;
 
 #[derive(AsRefStr, Clone, Debug, Display)]
 pub enum Format {
@@ -26,7 +24,7 @@ pub enum Format {
 }
 
 #[derive(Clone, Debug)]
-struct Response {
+pub(crate) struct Response {
     error: Option<String>,
 }
 
@@ -168,14 +166,14 @@ impl Client {
             }
         });
 
-        let state = Arc::new(State{
+        let state = Arc::new(State {
             cache,
             next_transaction_id,
             requests,
             socket,
             subscribers,
         });
-        Self{state}
+        Self { state }
     }
 
     pub fn add_consumer(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
@@ -229,20 +227,6 @@ impl Client {
             profile.to_string(),
         ];
         let transaction = self.send(Format::Json, "providers", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
-    pub fn add_system(&mut self) -> Result<(), Error> {
-        let id = system::get_system_id()?;
-        let name = hostname::get()?.to_str().unwrap().to_string();
-        self.add_system_(&id, &name)?;
-        Ok(())
-    }
-
-    fn add_system_(&mut self, id: &Uuid, name: &str) -> Result<(), Error> {
-        let args = vec![id.to_string(), name.to_string()];
-        let transaction = self.send(Format::Json, "systems", &args)?;
         let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
         Ok(())
     }
@@ -360,6 +344,15 @@ impl Client {
         Ok(cache.stats.clone())
     }
 
+    pub fn system(&mut self) -> Result<Arc<System>, Error> {
+        let id = system::get_system_id()?;
+        let name = hostname::get()?.to_str().unwrap().to_string();
+        let args = vec![id.to_string(), name.to_string()];
+        let transaction = self.send(Format::Json, "systems", &args)?;
+        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        Ok(Arc::new(System::new(self.clone(), id)))
+    }
+
     pub fn version(&self) -> Result<String, Error> {
         let cache = self.state.cache.lock()?;
         Ok(cache.version.clone())
@@ -380,7 +373,7 @@ impl Client {
         Err(Error::Timeout("Timed out waiting for open".to_string()))
     }
 
-    fn wait_for_response(&self, transaction: u64, timeout: Duration) -> Result<Response, Error> {
+    pub(crate) fn wait_for_response(&self, transaction: u64, timeout: Duration) -> Result<Response, Error> {
         let start_time = SystemTime::now();
         let sleep_for = Duration::from_millis(100);
         while SystemTime::now().duration_since(start_time)? < timeout {

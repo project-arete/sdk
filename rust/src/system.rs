@@ -1,5 +1,19 @@
-use super::Error;
+use super::{Client, Error};
 use uuid::Uuid;
+
+#[derive(Clone)]
+pub struct System {
+    #[allow(unused)]
+    client: Client,
+    #[allow(unused)]
+    id: Uuid,
+}
+
+impl System {
+    pub(crate) fn new(client: Client, id: Uuid) -> System {
+        Self { client, id }
+    }
+}
 
 #[cfg(target_os = "macos")]
 #[allow(unused)]
