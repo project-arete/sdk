@@ -176,19 +176,6 @@ impl Client {
         Self { state }
     }
 
-    pub fn add_consumer(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let args = vec![
-            system_id.to_string(),
-            node_id.to_string(),
-            context_id.to_string(),
-            profile.to_string(),
-        ];
-        let transaction = self.send(Format::Json, "consumers", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
         let cache = self.state.cache.lock()?;
         let value = match cache.keys.get(key) {
