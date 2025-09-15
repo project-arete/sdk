@@ -1,4 +1,4 @@
-use crate::{Cache, Error, system, Stats, System, stats::ConnectionState};
+use crate::{Cache, Error, Stats, System, stats::ConnectionState, system};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -198,22 +198,6 @@ impl Client {
             name.to_string(),
         ];
         let transaction = self.send(Format::Json, "contexts", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
-    pub fn add_node(&mut self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
-        let token_arg = token.unwrap_or("$uuid".to_string());
-        let args = vec![
-            system_id.to_string(),
-            id.to_string(),
-            name.to_string(),
-            upstream_arg,
-            token_arg,
-        ];
-        let transaction = self.send(Format::Json, "nodes", &args)?;
         let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
         Ok(())
     }

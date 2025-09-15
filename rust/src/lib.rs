@@ -1,15 +1,17 @@
 mod cache;
 mod client;
 mod error;
+mod node;
 mod stats;
 mod system;
 
 pub use cache::Cache;
-pub use client::Client;
-pub use system::System;
+pub use client::{Client, DEFAULT_TIMEOUT_SECS};
 pub use error::Error;
+pub use node::Node;
 pub use stats::Stats;
 use std::sync::{Arc, Mutex};
+pub use system::System;
 use tungstenite::{handshake::client::Response, stream::MaybeTlsStream};
 
 pub fn connect(url: &str) -> Result<(Client, Response), Error> {
