@@ -52,7 +52,7 @@ pub fn main() {
         .get_value()
         .unwrap()
         > 0;
-    provider.put("sOut", if state { "1" } else { "0" });
+    provider.put("sOut", if state { "1" } else { "0" }).unwrap();
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
     // Startup complete
@@ -65,7 +65,7 @@ pub fn main() {
     loop {
         let event = pin_events.get_event().unwrap();
         let state = event.event_type() == EventType::FallingEdge;
-        provider.put("sOut", if state { "1" } else { "0" });
+        provider.put("sOut", if state { "1" } else { "0" }).unwrap();
         eprintln!("Switch is now {}", if state { "ON" } else { "OFF" });
     }
 }
