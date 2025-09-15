@@ -4,9 +4,11 @@ mod error;
 mod node;
 mod stats;
 mod system;
+mod context;
 
 pub use cache::Cache;
 pub use client::{Client, DEFAULT_TIMEOUT_SECS};
+pub use context::Context;
 pub use error::Error;
 pub use node::Node;
 pub use stats::Stats;
