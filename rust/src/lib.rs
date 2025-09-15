@@ -5,12 +5,14 @@ mod node;
 mod stats;
 mod system;
 mod context;
+mod provider;
 
 pub use cache::Cache;
 pub use client::{Client, DEFAULT_TIMEOUT_SECS};
 pub use context::Context;
 pub use error::Error;
 pub use node::Node;
+pub use provider::Provider;
 pub use stats::Stats;
 use std::sync::{Arc, Mutex};
 pub use system::System;

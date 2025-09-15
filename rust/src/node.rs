@@ -6,12 +6,12 @@ use super::{Client, Context, Error, System, DEFAULT_TIMEOUT_SECS};
 #[derive(Clone)]
 pub struct Node {
     client: Client,
-    system: System,
-    id: String,
+    pub(crate) system: System,
+    pub(crate) id: String,
 }
 
 impl Node {
-    pub(crate) fn new(client: Client, system: System, id: String) -> Node {
+    pub(crate) fn new(client: Client, system: System, id: String) -> Self {
         Self { client, system, id }
     }
 

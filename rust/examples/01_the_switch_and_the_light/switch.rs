@@ -37,11 +37,11 @@ pub fn main() {
     let system = client.system().unwrap();
     let node = system.node(NODE_ID, NODE_NAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID}");
-    let _context = node.context(CONTEXT_ID, CONTEXT_NAME).unwrap();
+    let context = node.context(CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID}");
 
     // Register as a provider of state for the "padi.light" profile
-    client.add_provider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+    let _provider = context.provider(PADI_LIGHT_PROFILE);
     eprintln!("Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Read initial switch state, and sync it with Arete

@@ -10,7 +10,7 @@ pub struct System {
 }
 
 impl System {
-    pub(crate) fn new(client: Client, id: Uuid) -> System {
+    pub(crate) fn new(client: Client, id: Uuid) -> Self {
         Self { client, id }
     }
 
