@@ -11,6 +11,10 @@ pub struct Consumer {
 
 impl Consumer {
     pub(crate) fn new(client: Client, context: Context, profile: String) -> Self {
-        Self { client, context, profile }
+        Self {
+            client,
+            context,
+            profile,
+        }
     }
 }

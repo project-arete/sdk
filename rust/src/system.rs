@@ -1,6 +1,6 @@
 use super::{Client, Error, Node};
 use crate::client::{DEFAULT_TIMEOUT_SECS, Format};
-use std::{sync::Arc,time::Duration};
+use std::{sync::Arc, time::Duration};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -26,8 +26,7 @@ impl System {
         ];
         let mut client = self.client.clone();
         let transaction = client.send(Format::Json, "nodes", &args)?;
-        let _res = client
-            .wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        let _res = client.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
         Ok(Arc::new(Node::new(client, self.clone(), id.to_string())))
     }
 }

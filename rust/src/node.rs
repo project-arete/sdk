@@ -1,7 +1,7 @@
+use super::{Client, Context, DEFAULT_TIMEOUT_SECS, Error, System};
+use crate::client::Format;
 use std::sync::Arc;
 use std::time::Duration;
-use crate::client::Format;
-use super::{Client, Context, Error, System, DEFAULT_TIMEOUT_SECS};
 
 #[derive(Clone)]
 pub struct Node {
@@ -24,8 +24,7 @@ impl Node {
         ];
         let mut client = self.client.clone();
         let transaction = client.send(Format::Json, "contexts", &args)?;
-        let _res = client
-            .wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        let _res = client.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
         Ok(Arc::new(Context::new(client, self.clone(), id.to_string())))
     }
 }

@@ -238,20 +238,6 @@ impl Client {
         Ok(())
     }
 
-    pub fn put_property(
-        &mut self,
-        node_id: &str,
-        context_id: &str,
-        profile: &str,
-        property: &str,
-        value: &str,
-    ) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let key =
-            format!("cns/{system_id}/nodes/{node_id}/contexts/{context_id}/provider/{profile}/properties/{property}");
-        self.put(&key, value)
-    }
-
     pub fn send(&mut self, format: Format, cmd: &str, args: &[String]) -> Result<u64, Error> {
         let mut cmd = cmd.to_string();
         for arg in args {
