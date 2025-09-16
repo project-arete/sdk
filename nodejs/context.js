@@ -18,7 +18,7 @@ export class Context {
       const args = [this.node.system.id, this.node.id, this.id, profile];
       this.#client
         .command('providers', ...args)
-        .then((res) => resolve(new Profile(this.#client, this, profile)))
+        .then((res) => resolve(new Provider(this.#client, this, profile)))
         .catch(reject);
     });
   }
