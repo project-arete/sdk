@@ -30,7 +30,7 @@ client.wait_for_open()
 sys.stderr.write('Connected to Arete control plane\n')
 
 # Register this node and its context with the control plane
-client.add_system()
+system = client.system()
 client.add_node(NODE_ID, NODE_NAME)
 sys.stderr.write(f'Registered as node {NODE_ID}\n')
 client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME)

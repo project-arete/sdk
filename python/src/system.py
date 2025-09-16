@@ -4,6 +4,11 @@ import uuid
 LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model'
 LINUX_SERIAL_NUMBER_FILENAME = '/sys/firmware/devicetree/base/serial-number'
 
+class System:
+    def __init__(self, client, id):
+        self.client = client
+        self.id = id
+
 def get_system_id():
     if os.path.isfile(LINUX_MODEL_FILENAME) and os.path.isfile(LINUX_SERIAL_NUMBER_FILENAME):
         return get_system_id_linux()
