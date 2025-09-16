@@ -12,8 +12,8 @@ class System:
 
     def node(self, id, name, upstream=False, token=None):
         args = [self.id, id, name, upstream]
-        transaction = self.send('json', 'nodes', args)
-        self.wait_for_response(transaction)
+        transaction = self.client.send('json', 'nodes', args)
+        self.client.wait_for_response(transaction)
         return Node(self, id)
 
 def get_system_id():
