@@ -33,7 +33,7 @@ let context = await node.context(CONTEXT_ID, CONTEXT_NAME);
 console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID}`);
 
 // Register as a consumer of state for the "padi.light" profile
-await client.addConsumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+let consumer = await context.consumer(PADI_LIGHT_PROFILE);
 console.log(
   `Registered as a consumer of state for ${PADI_LIGHT_PROFILE} profile for context ${CONTEXT_ID}`,
 );
