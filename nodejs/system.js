@@ -10,16 +10,16 @@ const LINUX_SERIAL_NUMBER_FILENAME =
 
 export class System {
   #client;
-  #id;
+  id;
 
   constructor(client, id) {
     this.#client = client;
-    this.#id = id;
+    this.id = id;
   }
 
   node(id, name, upstream) {
     return new Promise((resolve, reject) => {
-      const args = [this.#id, id, name, upstream, null];
+      const args = [this.id, id, name, upstream, null];
       this.#client
         .command('nodes', ...args)
         .then((res) => resolve(new Node(this.#client, this, id)))

@@ -378,36 +378,6 @@ export class Client extends Emitter {
   }
 
   /**
-   * Add a context.
-   * @method
-   * @param {string} nodeId The globally unique node id.
-   * @param {string} id The globally unique context id.
-   * @param {string} name The human-readable context name.
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  addContext(nodeId, id, name, upstream) {
-    const args = [this.#systemId, nodeId, id, name];
-    return this.#send('json', 'contexts', ...args);
-  }
-
-  /**
-   * Add a node.
-   * @method
-   * @param {string} id The globally unique node id.
-   * @param {string} name The human-readable node name.
-   * @param {bool} upstream
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  addNode(id, name, upstream) {
-    const args = [this.#systemId, id, name, upstream, null];
-    return this.#send('json', 'nodes', ...args);
-  }
-
-  /**
    * Add a provider.
    * @method
    * @param {string} nodeId The globally unique node id.

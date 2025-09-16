@@ -29,7 +29,7 @@ console.log('Connected to Arete control plane');
 let system = await client.system();
 let node = await system.node(NODE_ID, NODE_NAME, false);
 console.log(`Registered as node ${NODE_ID}`);
-await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
+let context = await node.context(CONTEXT_ID, CONTEXT_NAME);
 console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID}`);
 
 // Register as a consumer of state for the "padi.light" profile
