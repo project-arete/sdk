@@ -3,11 +3,11 @@
 export class Consumer {
   #client;
   context;
-  id;
+  profile;
 
-  constructor(client, context, id) {
+  constructor(client, context, profile) {
     this.#client = client;
     this.context = context;
-    this.id = id;
+    this.profile = profile;
   }
 }

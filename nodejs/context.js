@@ -18,9 +18,9 @@ export class Context {
     return new Promise((resolve, reject) => {
       const args = [this.node.system.id, this.node.id, this.id, profile];
       this.#client
-          .command('consumers', ...args)
-          .then((res) => resolve(new Consumer(this.#client, this, profile)))
-          .catch(reject);
+        .command('consumers', ...args)
+        .then((res) => resolve(new Consumer(this.#client, this, profile)))
+        .catch(reject);
     });
   }
 

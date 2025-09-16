@@ -3,11 +3,16 @@
 export class Provider {
   #client;
   context;
-  id;
+  profile;
 
-  constructor(client, context, id) {
+  constructor(client, context, profile) {
     this.#client = client;
     this.context = context;
-    this.id = id;
+    this.profile = profile;
+  }
+
+  put(property, value) {
+    const key = `cns/${this.context.node.system.id}/nodes/${this.context.node.id}/contexts/${this.context.id}/provider/${this.profile}/properties/${property}`;
+    return this.#client.put(key, value);
   }
 }

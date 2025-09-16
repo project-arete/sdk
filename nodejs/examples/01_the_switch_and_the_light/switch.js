@@ -38,13 +38,7 @@ console.log(
 
 // Read initial switch state, and sync it with Arete
 let state = pin.readSync();
-client.putProperty(
-  NODE_ID,
-  CONTEXT_ID,
-  PADI_LIGHT_PROFILE,
-  'sOut',
-  state ? '1' : '0',
-);
+provider.put('sOut', state ? '1' : '0');
 console.log('Switch is initially', state ? 'ON' : 'OFF');
 
 // Detect future changes in switch state, and sync it with Arete
@@ -52,13 +46,7 @@ pin.watch((err, state) => {
   if (err) {
     throw err;
   }
-  client.putProperty(
-    NODE_ID,
-    CONTEXT_ID,
-    PADI_LIGHT_PROFILE,
-    'sOut',
-    state ? '1' : '0',
-  );
+  provider.put('sOut', state ? '1' : '0');
   console.log('Switch is now', state ? 'ON' : 'OFF');
 });
 
