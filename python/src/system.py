@@ -1,5 +1,6 @@
 import os
 import uuid
+from node import Node
 
 LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model'
 LINUX_SERIAL_NUMBER_FILENAME = '/sys/firmware/devicetree/base/serial-number'
@@ -8,6 +9,12 @@ class System:
     def __init__(self, client, id):
         self.client = client
         self.id = id
+
+    def node(self, id, name, upstream=False, token=None):
+        args = [self.id, id, name, upstream]
+        transaction = self.send('json', 'nodes', args)
+        self.wait_for_response(transaction)
+        return Node(self, id)
 
 def get_system_id():
     if os.path.isfile(LINUX_MODEL_FILENAME) and os.path.isfile(LINUX_SERIAL_NUMBER_FILENAME):
