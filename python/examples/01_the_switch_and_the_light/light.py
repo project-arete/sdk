@@ -37,7 +37,7 @@ context = node.context(CONTEXT_ID, CONTEXT_NAME)
 sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
 
 # Register as a consumer of state for the "padi.light" profile
-client.add_consumer(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+consumer = context.consumer(PADI_LIGHT_PROFILE);
 sys.stderr.write(f'Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it

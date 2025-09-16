@@ -1,3 +1,4 @@
+from consumer import Consumer
 from provider import Provider
 
 class Context:
@@ -5,6 +6,12 @@ class Context:
         self.client = client
         self.node = node
         self.id = id
+
+    def consumer(self, profile):
+        args = [self.node.system.id, self.node.id, self.id, profile]
+        transaction = self.client.send('json', 'consumers', args)
+        self.client.wait_for_response(transaction)
+        return Consumer(self.client, self, profile)
 
     def provider(self, profile):
         args = [self.node.system.id, self.node.id, self.id, profile]
