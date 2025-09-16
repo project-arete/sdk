@@ -2,6 +2,7 @@
 
 import * as fs from 'fs';
 import uuidv5 from 'uuidv5';
+import { Node } from './node.js';
 
 const LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model';
 const LINUX_SERIAL_NUMBER_FILENAME =
@@ -14,6 +15,16 @@ export class System {
   constructor(client, id) {
     this.#client = client;
     this.#id = id;
+  }
+
+  node(id, name, upstream) {
+    return new Promise((resolve, reject) => {
+      const args = [this.#id, id, name, upstream, null];
+      this.#client
+        .command('nodes', ...args)
+        .then((res) => resolve(new Node(this.#client, this, id)))
+        .catch(reject);
+    });
   }
 }
 

@@ -429,10 +429,13 @@ export class Client extends Emitter {
    * @fulfil {string} - The response from the host.
    * @reject {Error} - The request failed.
    */
-  async system() {
-    const args = [this.#systemId, os.hostname()];
-    await this.#send('json', 'systems', ...args);
-    return new System(this, this.#systemId);
+  system() {
+    return new Promise((resolve, reject) => {
+      const args = [this.#systemId, os.hostname()];
+      this.#send('json', 'systems', ...args)
+        .then((res) => resolve(new System(this, this.#systemId)))
+        .catch(reject);
+    });
   }
 
   /**
