@@ -39,7 +39,7 @@ context = node.context(CONTEXT_ID, CONTEXT_NAME)
 sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
 
 # Register as provider of state for the "padi.light" profile
-client.add_provider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+provider = context.provider(PADI_LIGHT_PROFILE);
 sys.stderr.write(f'Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
 # Read initial switch state, and sync it with Arete

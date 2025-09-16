@@ -10,5 +10,4 @@ class Node:
         args = [self.system.id, self.id, id, name]
         transaction = self.client.send('json', 'contexts', args)
         self.client.wait_for_response(transaction)
-        return Context(self, id)
-
+        return Context(self.client, self, id)
