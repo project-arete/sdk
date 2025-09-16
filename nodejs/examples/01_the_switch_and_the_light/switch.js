@@ -31,7 +31,7 @@ let context = await node.context(CONTEXT_ID, CONTEXT_NAME);
 console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID}`);
 
 // Register as a provider of state for the "padi.light" profile
-await client.addProvider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+let provider = await context.provider(PADI_LIGHT_PROFILE);
 console.log(
   `Registered as a provider of state for ${PADI_LIGHT_PROFILE} profile for context ${CONTEXT_ID}`,
 );
