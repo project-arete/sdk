@@ -7,6 +7,16 @@ const LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model';
 const LINUX_SERIAL_NUMBER_FILENAME =
   '/sys/firmware/devicetree/base/serial-number';
 
+export class System {
+  #client;
+  #id;
+
+  constructor(client, id) {
+    this.#client = client;
+    this.#id = id;
+  }
+}
+
 export function get_system_id() {
   if (
     fs.existsSync(LINUX_MODEL_FILENAME) &&

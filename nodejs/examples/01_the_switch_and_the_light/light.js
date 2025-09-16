@@ -26,7 +26,7 @@ await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
 
 // Register this node and its context with the control plane
-await client.addSystem();
+let system = client.system();
 await client.addNode(NODE_ID, NODE_NAME, false);
 console.log(`Registered as node ${NODE_ID}`);
 await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);

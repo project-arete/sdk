@@ -3,7 +3,7 @@
 
 import os from 'os';
 import WebSocket from 'ws';
-import { get_system_id } from './system.js';
+import { get_system_id, System } from './system.js';
 
 /**
  * Socket open error.
@@ -423,19 +423,16 @@ export class Client extends Emitter {
   }
 
   /**
-   * Add a system.
+   * Registers a system.
    * @method
-   * @param {string} id The globally unique system id.
-   * @param {string} name The human-readable system name.
    * @returns {Promise} Returns a promise.
    * @fulfil {string} - The response from the host.
    * @reject {Error} - The request failed.
    */
-  addSystem(id, name, upstream) {
-    id = id || this.#systemId;
-    name = name || os.hostname();
-    const args = [id, name];
-    return this.#send('json', 'systems', ...args);
+  async system() {
+    const args = [this.#systemId, os.hostname()];
+    await this.#send('json', 'systems', ...args);
+    return new System(this, this.#systemId);
   }
 
   /**
