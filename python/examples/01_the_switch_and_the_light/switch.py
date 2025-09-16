@@ -39,12 +39,12 @@ context = node.context(CONTEXT_ID, CONTEXT_NAME)
 sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
 
 # Register as provider of state for the "padi.light" profile
-provider = context.provider(PADI_LIGHT_PROFILE);
+provider = context.provider(PADI_LIGHT_PROFILE)
 sys.stderr.write(f'Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
 # Read initial switch state, and sync it with Arete
 state = GPIO.input(GPIO04) == 0
-client.put_property(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", '1' if state else '0')
+provider.put("sOut", '1' if state else '0')
 sys.stderr.write('Switch is initially {}\n'.format('ON' if state else 'OFF'))
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
@@ -54,7 +54,7 @@ def detect_change(channel):
     while True:
         state = GPIO.input(GPIO04) == 0
         if state != last_state:
-            client.put_property(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE, "sOut", '1' if state else '0')
+            provider.put("sOut", '1' if state else '0')
             sys.stderr.write('Switch is now {}\n'.format('ON' if state else 'OFF'))
             last_state = state
         else:
