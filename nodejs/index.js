@@ -3,7 +3,7 @@
 
 import os from 'os';
 import WebSocket from 'ws';
-import { get_system_id } from './system.js';
+import { get_system_id, System } from './system.js';
 
 /**
  * Socket open error.
@@ -301,23 +301,6 @@ export class Client extends Emitter {
   }
 
   /**
-   * As a provider, put a property.
-   * @method
-   * @param {string} nodeId The globally unique node id.
-   * @param {string} contextId The globally unique context id.
-   * @param {string} profile The human-readable context name.
-   * @param {string} property The property name.
-   * @param {string} value The value.
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  putProperty(nodeId, contextId, profile, property, value) {
-    const key = `cns/${this.#systemId}/nodes/${nodeId}/contexts/${contextId}/provider/${profile}/properties/${property}`;
-    return this.put(key, value);
-  }
-
-  /**
    * Select matching keys.
    * @method
    * @param {string} filter The key filter.
@@ -363,79 +346,19 @@ export class Client extends Emitter {
   }
 
   /**
-   * Add a consumer.
+   * Registers a system.
    * @method
-   * @param {string} nodeId The globally unique node id.
-   * @param {string} contextId The globally unique context id.
-   * @param {string} profile The profile identifier.
    * @returns {Promise} Returns a promise.
    * @fulfil {string} - The response from the host.
    * @reject {Error} - The request failed.
    */
-  addConsumer(nodeId, contextId, profile) {
-    const args = [this.#systemId, nodeId, contextId, profile];
-    return this.#send('json', 'consumers', ...args);
-  }
-
-  /**
-   * Add a context.
-   * @method
-   * @param {string} nodeId The globally unique node id.
-   * @param {string} id The globally unique context id.
-   * @param {string} name The human-readable context name.
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  addContext(nodeId, id, name, upstream) {
-    const args = [this.#systemId, nodeId, id, name];
-    return this.#send('json', 'contexts', ...args);
-  }
-
-  /**
-   * Add a node.
-   * @method
-   * @param {string} id The globally unique node id.
-   * @param {string} name The human-readable node name.
-   * @param {bool} upstream
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  addNode(id, name, upstream) {
-    const args = [this.#systemId, id, name, upstream, null];
-    return this.#send('json', 'nodes', ...args);
-  }
-
-  /**
-   * Add a provider.
-   * @method
-   * @param {string} nodeId The globally unique node id.
-   * @param {string} contextId The globally unique context id.
-   * @param {string} profile The profile identifier.
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  addProvider(nodeId, contextId, profile) {
-    const args = [this.#systemId, nodeId, contextId, profile];
-    return this.#send('json', 'providers', ...args);
-  }
-
-  /**
-   * Add a system.
-   * @method
-   * @param {string} id The globally unique system id.
-   * @param {string} name The human-readable system name.
-   * @returns {Promise} Returns a promise.
-   * @fulfil {string} - The response from the host.
-   * @reject {Error} - The request failed.
-   */
-  addSystem(id, name, upstream) {
-    id = id || this.#systemId;
-    name = name || os.hostname();
-    const args = [id, name];
-    return this.#send('json', 'systems', ...args);
+  system() {
+    return new Promise((resolve, reject) => {
+      const args = [this.#systemId, os.hostname()];
+      this.#send('json', 'systems', ...args)
+        .then((res) => resolve(new System(this, this.#systemId)))
+        .catch(reject);
+    });
   }
 
   /**

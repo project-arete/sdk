@@ -24,27 +24,21 @@ await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
 
 // Register this node and its context with the control plane
-await client.addSystem();
-await client.addNode(NODE_ID, NODE_NAME, false);
+let system = await client.system();
+let node = await system.node(NODE_ID, NODE_NAME, false);
 console.log(`Registered as node ${NODE_ID}`);
-await client.addContext(NODE_ID, CONTEXT_ID, CONTEXT_NAME);
+let context = await node.context(CONTEXT_ID, CONTEXT_NAME);
 console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID}`);
 
 // Register as a provider of state for the "padi.light" profile
-await client.addProvider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+let provider = await context.provider(PADI_LIGHT_PROFILE);
 console.log(
   `Registered as a provider of state for ${PADI_LIGHT_PROFILE} profile for context ${CONTEXT_ID}`,
 );
 
 // Read initial switch state, and sync it with Arete
 let state = pin.readSync();
-client.putProperty(
-  NODE_ID,
-  CONTEXT_ID,
-  PADI_LIGHT_PROFILE,
-  'sOut',
-  state ? '1' : '0',
-);
+provider.put('sOut', state ? '1' : '0');
 console.log('Switch is initially', state ? 'ON' : 'OFF');
 
 // Detect future changes in switch state, and sync it with Arete
@@ -52,13 +46,7 @@ pin.watch((err, state) => {
   if (err) {
     throw err;
   }
-  client.putProperty(
-    NODE_ID,
-    CONTEXT_ID,
-    PADI_LIGHT_PROFILE,
-    'sOut',
-    state ? '1' : '0',
-  );
+  provider.put('sOut', state ? '1' : '0');
   console.log('Switch is now', state ? 'ON' : 'OFF');
 });
 

@@ -1,5 +1,4 @@
-use super::{Cache, Error, Stats, system};
-use crate::stats::ConnectionState;
+use crate::{Cache, Error, Stats, System, stats::ConnectionState, system};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
@@ -15,9 +14,8 @@ use std::{
 };
 use strum_macros::{AsRefStr, Display};
 use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
-use uuid::Uuid;
 
-const DEFAULT_TIMEOUT_SECS: u64 = 5;
+pub const DEFAULT_TIMEOUT_SECS: u64 = 5;
 
 #[derive(AsRefStr, Clone, Debug, Display)]
 pub enum Format {
@@ -26,16 +24,21 @@ pub enum Format {
 }
 
 #[derive(Clone, Debug)]
-struct Response {
+pub(crate) struct Response {
     error: Option<String>,
 }
 
-pub struct Client {
+struct State {
     cache: Arc<Mutex<Cache>>,
     next_transaction_id: AtomicU64,
     requests: Arc<Mutex<HashMap<u64, Option<Response>>>>,
     socket: Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>,
     subscribers: Arc<Mutex<Vec<Sender<Cache>>>>,
+}
+
+#[derive(Clone)]
+pub struct Client {
+    state: Arc<State>,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -163,86 +166,18 @@ impl Client {
             }
         });
 
-        Self {
+        let state = Arc::new(State {
             cache,
             next_transaction_id,
             requests,
             socket,
             subscribers,
-        }
-    }
-
-    pub fn add_consumer(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let args = vec![
-            system_id.to_string(),
-            node_id.to_string(),
-            context_id.to_string(),
-            profile.to_string(),
-        ];
-        let transaction = self.send(Format::Json, "consumers", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
-    pub fn add_context(&mut self, node_id: &str, id: &str, name: &str) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let args = vec![
-            system_id.to_string(),
-            node_id.to_string(),
-            id.to_string(),
-            name.to_string(),
-        ];
-        let transaction = self.send(Format::Json, "contexts", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
-    pub fn add_node(&mut self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
-        let token_arg = token.unwrap_or("$uuid".to_string());
-        let args = vec![
-            system_id.to_string(),
-            id.to_string(),
-            name.to_string(),
-            upstream_arg,
-            token_arg,
-        ];
-        let transaction = self.send(Format::Json, "nodes", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
-    pub fn add_provider(&mut self, node_id: &str, context_id: &str, profile: &str) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let args = vec![
-            system_id.to_string(),
-            node_id.to_string(),
-            context_id.to_string(),
-            profile.to_string(),
-        ];
-        let transaction = self.send(Format::Json, "providers", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
-    }
-
-    pub fn add_system(&mut self) -> Result<(), Error> {
-        let id = system::get_system_id()?;
-        let name = hostname::get()?.to_str().unwrap().to_string();
-        self.add_system_(&id, &name)?;
-        Ok(())
-    }
-
-    fn add_system_(&mut self, id: &Uuid, name: &str) -> Result<(), Error> {
-        let args = vec![id.to_string(), name.to_string()];
-        let transaction = self.send(Format::Json, "systems", &args)?;
-        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
-        Ok(())
+        });
+        Self { state }
     }
 
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
-        let cache = self.cache.lock()?;
+        let cache = self.state.cache.lock()?;
         let value = match cache.keys.get(key) {
             Some(value) => Some(value.clone()),
             None => default_value,
@@ -252,7 +187,7 @@ impl Client {
 
     pub fn keys(&self) -> Result<Vec<String>, Error> {
         let mut vec = vec![];
-        let cache = self.cache.lock()?;
+        let cache = self.state.cache.lock()?;
         for (key, _) in cache.keys.iter() {
             vec.push(key.clone());
         }
@@ -292,7 +227,7 @@ impl Client {
 
     pub fn on_update(&mut self) -> Result<Receiver<Cache>, Error> {
         let (tx, rx) = mpsc::channel();
-        let mut subscribers = self.subscribers.lock()?;
+        let mut subscribers = self.state.subscribers.lock()?;
         subscribers.push(tx);
         Ok(rx)
     }
@@ -303,20 +238,6 @@ impl Client {
         Ok(())
     }
 
-    pub fn put_property(
-        &mut self,
-        node_id: &str,
-        context_id: &str,
-        profile: &str,
-        property: &str,
-        value: &str,
-    ) -> Result<(), Error> {
-        let system_id = system::get_system_id()?;
-        let key =
-            format!("cns/{system_id}/nodes/{node_id}/contexts/{context_id}/provider/{profile}/properties/{property}");
-        self.put(&key, value)
-    }
-
     pub fn send(&mut self, format: Format, cmd: &str, args: &[String]) -> Result<u64, Error> {
         let mut cmd = cmd.to_string();
         for arg in args {
@@ -324,7 +245,7 @@ impl Client {
         }
 
         let mut msg = HashMap::new();
-        let transaction_id = self.next_transaction_id.fetch_add(1, Ordering::SeqCst);
+        let transaction_id = self.state.next_transaction_id.fetch_add(1, Ordering::SeqCst);
         msg.insert("format".to_string(), Value::String(format.to_string()));
         msg.insert("transaction".to_string(), Value::from(transaction_id));
         msg.insert("command".to_string(), Value::String(cmd));
@@ -335,7 +256,7 @@ impl Client {
                 let message = Message::text(msg_as_json);
                 self.send_message(message)?;
                 {
-                    let mut requests = self.requests.lock()?;
+                    let mut requests = self.state.requests.lock()?;
                     requests.insert(transaction_id, None);
                 }
                 Ok(transaction_id)
@@ -344,18 +265,27 @@ impl Client {
     }
 
     fn send_message(&mut self, message: Message) -> Result<(), Error> {
-        let mut socket = self.socket.lock()?;
+        let mut socket = self.state.socket.lock()?;
         socket.send(message)?;
         Ok(())
     }
 
     pub fn stats(&self) -> Result<Stats, Error> {
-        let cache = self.cache.lock()?;
+        let cache = self.state.cache.lock()?;
         Ok(cache.stats.clone())
     }
 
+    pub fn system(&mut self) -> Result<Arc<System>, Error> {
+        let id = system::get_system_id()?;
+        let name = hostname::get()?.to_str().unwrap().to_string();
+        let args = vec![id.to_string(), name.to_string()];
+        let transaction = self.send(Format::Json, "systems", &args)?;
+        let _response = self.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        Ok(Arc::new(System::new(self.clone(), id)))
+    }
+
     pub fn version(&self) -> Result<String, Error> {
-        let cache = self.cache.lock()?;
+        let cache = self.state.cache.lock()?;
         Ok(cache.version.clone())
     }
 
@@ -364,7 +294,7 @@ impl Client {
         let sleep_for = Duration::from_millis(100);
         while SystemTime::now().duration_since(start_time)? < timeout {
             {
-                let cache = self.cache.lock()?;
+                let cache = self.state.cache.lock()?;
                 if !cache.version.is_empty() {
                     return Ok(());
                 }
@@ -374,12 +304,12 @@ impl Client {
         Err(Error::Timeout("Timed out waiting for open".to_string()))
     }
 
-    fn wait_for_response(&self, transaction: u64, timeout: Duration) -> Result<Response, Error> {
+    pub(crate) fn wait_for_response(&self, transaction: u64, timeout: Duration) -> Result<Response, Error> {
         let start_time = SystemTime::now();
         let sleep_for = Duration::from_millis(100);
         while SystemTime::now().duration_since(start_time)? < timeout {
             {
-                let requests = self.requests.lock()?;
+                let requests = self.state.requests.lock()?;
                 let response = match requests.get(&transaction) {
                     None => return Err(Error::Default("No such transaction".to_string())),
                     Some(response) => response.clone(),

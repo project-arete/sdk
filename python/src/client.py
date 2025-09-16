@@ -4,7 +4,7 @@ from websockets.protocol import State
 import json
 import socket
 import time
-from system import get_system_id
+from system import get_system_id, System
 
 class Client:
     def __init__(self, websocket):
@@ -27,34 +27,6 @@ class Client:
 
         return client
 
-    def add_consumer(self, node_id, context_id, profile):
-        args = [self.system_id, node_id, context_id, profile]
-        transaction = self.send('json', 'consumers', args)
-        self.wait_for_response(transaction)
-
-    def add_context(self, node_id, id, name):
-        args = [self.system_id, node_id, id, name]
-        transaction = self.send('json', 'contexts', args)
-        self.wait_for_response(transaction)
-
-    def add_node(self, id, name, upstream=False, token=None):
-        args = [self.system_id, id, name, upstream]
-        transaction = self.send('json', 'nodes', args)
-        self.wait_for_response(transaction)
-
-    def add_provider(self, node_id, context_id, profile):
-        args = [self.system_id, node_id, context_id, profile]
-        transaction = self.send('json', 'providers', args)
-        self.wait_for_response(transaction)
-
-    def add_system(self, id=None, name=None):
-        if id is None:
-            id = self.system_id
-        if name is None:
-            name = socket.gethostname()
-        args = [id, name]
-        return self.send('json', 'systems', args)
-
     def get(self, key):
         return self.cache['keys'][key]
 
@@ -64,10 +36,6 @@ class Client:
     def put(self, key, value):
         args = [key, value]
         return self.send('json', 'put', args)
-
-    def put_property(self, node_id, context_id, profile, property, value):
-        key = f'cns/{self.system_id}/nodes/{node_id}/contexts/{context_id}/provider/{profile}/properties/{property}'
-        self.put(key, value)
 
     def send(self, format, cmd, args=[]):
         for arg in args:
@@ -85,6 +53,14 @@ class Client:
 
     def stats(self):
         return self.cache.get('stats', None)
+
+    def system(self):
+        id = self.system_id
+        name = socket.gethostname()
+        args = [id, name]
+        transaction = self.send('json', 'systems', args)
+        self.wait_for_response(transaction)
+        return System(self, id)
 
     def version(self):
         return self.cache.get('version', None)

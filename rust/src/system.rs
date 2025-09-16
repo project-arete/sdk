@@ -1,5 +1,35 @@
-use super::Error;
+use super::{Client, Error, Node};
+use crate::client::{DEFAULT_TIMEOUT_SECS, Format};
+use std::{sync::Arc, time::Duration};
 use uuid::Uuid;
+
+#[derive(Clone)]
+pub struct System {
+    client: Client,
+    pub(crate) id: Uuid,
+}
+
+impl System {
+    pub(crate) fn new(client: Client, id: Uuid) -> Self {
+        Self { client, id }
+    }
+
+    pub fn node(&self, id: &str, name: &str, upstream: bool, token: Option<String>) -> Result<Arc<Node>, Error> {
+        let upstream_arg = if upstream { "yes".to_string() } else { "no".to_string() };
+        let token_arg = token.unwrap_or("$uuid".to_string());
+        let args = vec![
+            self.id.to_string(),
+            id.to_string(),
+            name.to_string(),
+            upstream_arg,
+            token_arg,
+        ];
+        let mut client = self.client.clone();
+        let transaction = client.send(Format::Json, "nodes", &args)?;
+        let _res = client.wait_for_response(transaction, Duration::from_secs(DEFAULT_TIMEOUT_SECS))?;
+        Ok(Arc::new(Node::new(client, self.clone(), id.to_string())))
+    }
+}
 
 #[cfg(target_os = "macos")]
 #[allow(unused)]

@@ -34,14 +34,14 @@ pub fn main() {
     eprintln!("Connected to Arete control plane");
 
     // Register this node and its context with the control plane
-    client.add_system().unwrap();
-    client.add_node(NODE_ID, NODE_NAME, false, None).unwrap();
+    let system = client.system().unwrap();
+    let node = system.node(NODE_ID, NODE_NAME, false, None).unwrap();
     eprintln!("Registered as node {NODE_ID}");
-    client.add_context(NODE_ID, CONTEXT_ID, CONTEXT_NAME).unwrap();
+    let context = node.context(CONTEXT_ID, CONTEXT_NAME).unwrap();
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID}");
 
     // Register as a provider of state for the "padi.light" profile
-    client.add_provider(NODE_ID, CONTEXT_ID, PADI_LIGHT_PROFILE);
+    let provider = context.provider(PADI_LIGHT_PROFILE).unwrap();
     eprintln!("Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Read initial switch state, and sync it with Arete
@@ -52,13 +52,7 @@ pub fn main() {
         .get_value()
         .unwrap()
         > 0;
-    client.put_property(
-        NODE_ID,
-        CONTEXT_ID,
-        PADI_LIGHT_PROFILE,
-        "sOut",
-        if state { "1" } else { "0" },
-    );
+    provider.put("sOut", if state { "1" } else { "0" }).unwrap();
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 
     // Startup complete
@@ -71,13 +65,7 @@ pub fn main() {
     loop {
         let event = pin_events.get_event().unwrap();
         let state = event.event_type() == EventType::FallingEdge;
-        client.put_property(
-            NODE_ID,
-            CONTEXT_ID,
-            PADI_LIGHT_PROFILE,
-            "sOut",
-            if state { "1" } else { "0" },
-        );
+        provider.put("sOut", if state { "1" } else { "0" }).unwrap();
         eprintln!("Switch is now {}", if state { "ON" } else { "OFF" });
     }
 }
