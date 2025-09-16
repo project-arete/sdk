@@ -1,5 +1,9 @@
 # Project Arete SDK Changelog
 
+## [Unreleased]
+### Added
+- [#76](https://github.com/project-arete/sdk/issues/76) Provide System, Node, Context, Provider, and Consumer objects for developer convenience
+
 ## [0.1.4] - 2025-09-12
 ### Added
 - [#71](https://github.com/project-arete/sdk/issues/71) Expose Client addProvider and addConsumer fns
