@@ -8,6 +8,7 @@ sys.path.append('../../src')
 from client import Client
 
 GPIO23 = 23
+DESIRED_STATE_KEY = 'cns/140355ce-3fc9-5944-a6a0-70a58233608d/nodes/onqXVczGoymQkFc3UN6qcM/contexts/uRLoYsXEY7nsbs9fRdjM8A/consumer/padi.light/connections/u4PfrJwUiZdKoZb5ySnS47/properties/sOut'
 
 NODE_ID = 'onqXVczGoymQkFc3UN6qcM'
 NODE_NAME = 'arete-sdk-01-light'
@@ -41,7 +42,13 @@ consumer = context.consumer(PADI_LIGHT_PROFILE)
 sys.stderr.write(f'Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
-# TODO(https://github.com/project-arete/sdk/issues/57)
+def detect_change(event):
+    if DESIRED_STATE_KEY in event['keys']:
+        state = event['keys'][DESIRED_STATE_KEY]
+        desired_state = state == '1'
+        GPIO.output(GPIO23, desired_state)
+        sys.stderr.write('Light is now {}\n'.format('ON' if desired_state else 'OFF'))
+client.on_update(detect_change)
 
 # Register shutdown handling
 @atexit.register

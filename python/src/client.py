@@ -10,6 +10,7 @@ class Client:
     def __init__(self, websocket):
         self.cache = {}
         self.requests = {}
+        self.subscribers = []
         self.system_id = get_system_id()
         self.transaction = 1
         self.websocket = websocket
@@ -32,6 +33,9 @@ class Client:
 
     def keys(self):
         return self.cache['keys']
+
+    def on_update(self, fn):
+        self.subscribers.append(fn)
 
     def put(self, key, value):
         args = [key, value]
@@ -97,3 +101,6 @@ def receive_messages(self):
                 if response == '':
                     self.requests[transaction] = {'error': None}
         self.cache.update(data)
+        if 'keys' in data:
+            for fn in self.subscribers:
+                fn(data)
