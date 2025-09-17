@@ -6,7 +6,7 @@ pub struct Consumer {
     #[allow(unused)]
     context: Context,
     #[allow(unused)]
-    profile: String,
+    pub profile: String,
 }
 
 impl Consumer {

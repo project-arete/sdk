@@ -7,7 +7,7 @@ use std::time::Duration;
 pub struct Context {
     client: Client,
     pub(crate) node: Node,
-    pub(crate) id: String,
+    pub id: String,
 }
 
 impl Context {
