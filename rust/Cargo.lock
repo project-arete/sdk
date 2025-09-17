@@ -17,6 +17,7 @@ version = "0.1.4"
 dependencies = [
  "gpio-cdev",
  "hostname",
+ "regex",
  "rustls",
  "serde",
  "serde_json",
