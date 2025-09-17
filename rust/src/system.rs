@@ -6,7 +6,7 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub struct System {
     client: Client,
-    pub(crate) id: Uuid,
+    pub id: Uuid,
 }
 
 impl System {

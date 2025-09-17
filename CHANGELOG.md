@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - [#76](https://github.com/project-arete/sdk/issues/76) Provide System, Node, Context, Provider, and Consumer objects for developer convenience
+- [#57](https://github.com/project-arete/sdk/issues/57) (Python) Support observing update events
 
 ## [0.1.4] - 2025-09-12
 ### Added

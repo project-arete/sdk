@@ -3,7 +3,7 @@ use super::{Client, Context, Error};
 pub struct Provider {
     client: Client,
     context: Context,
-    profile: String,
+    pub profile: String,
 }
 
 impl Provider {
