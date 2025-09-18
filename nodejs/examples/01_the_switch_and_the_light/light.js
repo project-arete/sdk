@@ -38,13 +38,15 @@ console.log(
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it
 consumer.watch((event) => {
-  const desiredState = event.value == '1';
-  pin.writeSync(desiredState ? Gpio.HIGH : Gpio.LOW, (err) => {
-    if (err) {
-      throw err;
-    }
-  });
-  console.log('Light is now', desiredState ? 'ON' : 'OFF');
+  if (event.property == 'sOut') {
+    const desiredState = event.value == '1';
+    pin.writeSync(desiredState ? Gpio.HIGH : Gpio.LOW, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
+    console.log('Light is now', desiredState ? 'ON' : 'OFF');
+  }
 });
 
 // Register shutdown handling
