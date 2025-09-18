@@ -47,7 +47,7 @@ pub fn main() {
     eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Try to actualize initial desired state
-    if let Some(value) = consumer.get("sOut") {
+    if let Some(value) = consumer.get("sOut").unwrap() {
         let desired_state = match event.value {
             Value::String(value) => value == "1",
             _ => false,
