@@ -178,6 +178,7 @@ impl Client {
 
     pub fn get(&self, key: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
         let cache = self.state.cache.lock()?;
+        eprintln!("** cache: {cache:?}");
         let value = match cache.keys.get(key) {
             Some(value) => Some(value.clone()),
             None => default_value,

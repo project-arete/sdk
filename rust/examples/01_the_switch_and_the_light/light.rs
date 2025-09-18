@@ -46,7 +46,7 @@ pub fn main() {
     let consumer = context.consumer(PADI_LIGHT_PROFILE).unwrap();
     eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
-    // Try to actualize initial desired state
+    // Try to realize initial desired state
     if let Some(value) = consumer.get("sOut").unwrap() {
         let desired_state = match value {
             Value::String(value) => value == "1",
@@ -56,7 +56,7 @@ pub fn main() {
         eprintln!("Light is initially {}", if desired_state { "ON" } else { "OFF" });
     }
 
-    // Detect future changes to desired state, and try to actualize it
+    // Detect future changes to desired state, and try to realize it
     std::thread::spawn(move || {
         let updates_rx = consumer.watch().unwrap();
         loop {

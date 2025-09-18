@@ -35,6 +35,7 @@ impl Consumer {
     pub fn get(&self, property: &str) -> Result<Option<Value>, Error> {
         let key_prefix = self.key_prefix();
         let key = format!("{key_prefix}properties/{property}");
+        eprintln!("** key: {key}");
         self.client.get(&key, None)
     }
 
