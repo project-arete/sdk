@@ -4,6 +4,7 @@
 ### Added
 - [#76](https://github.com/project-arete/sdk/issues/76) Provide System, Node, Context, Provider, and Consumer objects for developer convenience
 - [#57](https://github.com/project-arete/sdk/issues/57) (Python) Support observing update events
+- [#48](https://github.com/project-arete/sdk/issues/48) Added license files
 
 ### Changed
 - [#73](https://github.com/project-arete/sdk/issues/73) Example Light services should obtain their connection key from the Arete control plane
