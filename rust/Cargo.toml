@@ -8,7 +8,7 @@ repository = "https://github.com/project-arete/sdk.git"
 version = "0.1.4"
 homepage = "https://padi.io"
 edition = "2024"
-license = "MIT"
+license-file = "LICENSE"
 
 [dependencies]
 hostname = "0.4.1"
