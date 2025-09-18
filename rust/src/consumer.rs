@@ -32,12 +32,14 @@ impl Consumer {
         }
     }
 
+    pub fn get(&self, property: &str) -> Result<Option<Value>, Error> {
+        let key_prefix = self.key_prefix();
+        let key = format!("{key_prefix}properties/{property}");
+        self.client.get(&key, None)
+    }
+
     pub fn watch(&self) -> Result<Receiver<ChangeEvent>, Error> {
-        let system_id = self.context.node.system.id.to_string();
-        let node_id = &self.context.node.id;
-        let context_id = &self.context.id;
-        let profile = &self.profile;
-        let key_prefix = format!("cns/{system_id}/nodes/{node_id}/contexts/{context_id}/consumer/{profile}/");
+        let key_prefix = self.key_prefix();
         let upstream_rx = self.client.clone().on_update()?;
         let (tx, rx) = mpsc::channel();
         let re = Regex::new(r"connections/(\w+)/properties/(\w+)$")?;
@@ -62,5 +64,13 @@ impl Consumer {
             }
         });
         Ok(rx)
+    }
+
+    fn key_prefix(&self) -> String {
+        let system_id = self.context.node.system.id.to_string();
+        let node_id = &self.context.node.id;
+        let context_id = &self.context.id;
+        let profile = &self.profile;
+        format!("cns/{system_id}/nodes/{node_id}/contexts/{context_id}/consumer/{profile}/")
     }
 }
