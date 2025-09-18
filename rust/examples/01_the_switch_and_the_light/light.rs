@@ -2,7 +2,6 @@
 
 const DEFAULT_TIMEOUT_MILLIS: u64 = 500;
 const GPIO23: u32 = 23;
-const DESIRED_STATE_KEY: &str = "cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState";
 
 const NODE_ID: &str = "onqXVczGoymQkFc3UN6qcM";
 const NODE_NAME: &str = "arete-sdk-01-light";
@@ -44,26 +43,16 @@ pub fn main() {
     eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID}");
 
     // Register as a consumer of state for the "padi.light" profile
-    let _consumer = context.consumer(PADI_LIGHT_PROFILE).unwrap();
+    let consumer = context.consumer(PADI_LIGHT_PROFILE).unwrap();
     eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
-    // Realize initial desired state
-    if let Some(value) = client.get(DESIRED_STATE_KEY, Some("0".into())).unwrap() {
-        let desired_state = match value {
-            Value::String(value) => value == "1",
-            _ => false,
-        };
-        pin_handle.set_value(if desired_state { 1 } else { 0 }).unwrap();
-        eprintln!("Light is initially {}", if desired_state { "ON" } else { "OFF" });
-    }
-
-    // Detect future changes to desired state, and try to actualize it
-    let updates_rx = client.on_update().unwrap();
+    // Detect current desired state, plus future changes to it, and try to actualize it
     std::thread::spawn(move || {
+        let updates_rx = consumer.watch().unwrap();
         loop {
             let event = updates_rx.recv().unwrap();
-            if let Some(value) = event.keys.get(DESIRED_STATE_KEY) {
-                let desired_state = match value {
+            if event.property == "sOut" {
+                let desired_state = match event.value {
                     Value::String(value) => value == "1",
                     _ => false,
                 };

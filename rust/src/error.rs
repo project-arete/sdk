@@ -25,6 +25,12 @@ impl<T> From<PoisonError<T>> for Error {
     }
 }
 
+impl From<regex::Error> for Error {
+    fn from(e: regex::Error) -> Self {
+        Error::Serialization(e.to_string())
+    }
+}
+
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         Error::Serialization(e.to_string())

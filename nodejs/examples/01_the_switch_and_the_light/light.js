@@ -2,8 +2,6 @@ import { Gpio } from 'onoff';
 import { Client } from '../../index.js';
 
 const GPIO23 = 535;
-const DESIRED_STATE_KEY =
-  'cns/network/nodes/sri4FZUq2V7S4ik2PrG4pj/contexts/kMqdHs8ZcskdkCvf1VpfSZ/provider/padi.button/connections/geizaJngWyA1AL3Nhn5dzD/properties/sState';
 
 const CONTEXT_ID = 'uRLoYsXEY7nsbs9fRdjM8A';
 const CONTEXT_NAME = 'Building 23, Office 41-B';
@@ -39,18 +37,16 @@ console.log(
 );
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it
-client.on('update', (event) => {
-  let value = event.keys[DESIRED_STATE_KEY];
-  if (!value) {
-    return;
+consumer.watch((event) => {
+  if (event.property == 'sOut') {
+    const desiredState = event.value == '1';
+    pin.writeSync(desiredState ? Gpio.HIGH : Gpio.LOW, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
+    console.log('Light is now', desiredState ? 'ON' : 'OFF');
   }
-  const desired_state = value == '1';
-  pin.writeSync(desired_state ? Gpio.HIGH : Gpio.LOW, (err) => {
-    if (err) {
-      throw err;
-    }
-  });
-  console.log('Light is now', desired_state ? 'ON' : 'OFF');
 });
 
 // Register shutdown handling
