@@ -48,7 +48,7 @@ pub fn main() {
 
     // Try to actualize initial desired state
     if let Some(value) = consumer.get("sOut").unwrap() {
-        let desired_state = match event.value {
+        let desired_state = match value {
             Value::String(value) => value == "1",
             _ => false,
         };
