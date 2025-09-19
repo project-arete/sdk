@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- [#81](https://github.com/project-arete/sdk/issues/81) (Python) Publish tag releases to pypi.org
 - [#76](https://github.com/project-arete/sdk/issues/76) Provide System, Node, Context, Provider, and Consumer objects for developer convenience
 - [#57](https://github.com/project-arete/sdk/issues/57) (Python) Support observing update events
 - [#49](https://github.com/project-arete/sdk/issues/49) (Python) Enable static analysis during CI
