@@ -53,7 +53,7 @@ jobs:
 
 
   publish:
-    name: Publish
+    name: Publish to crates.io
     runs-on: ubuntu-latest
     if: startsWith(github.event.ref, 'refs/tags/')
     steps:
