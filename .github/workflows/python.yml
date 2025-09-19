@@ -78,3 +78,5 @@ jobs:
 
       - name: publish to pypi.org
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
