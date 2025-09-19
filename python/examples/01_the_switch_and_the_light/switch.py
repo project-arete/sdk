@@ -6,7 +6,7 @@ import RPi.GPIO as GPIO
 from threading import Thread
 from time import sleep
 
-sys.path.append('../../src')
+sys.path.append('../../src/arete_sdk')
 from client import Client
 
 GPIO04 = 4

@@ -1,0 +1,31 @@
+[project]
+name = "arete-sdk"
+version = "0.1.4"
+description = "The Project Arete SDK for smart buildings"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "websockets>=13,<16",
+]
+license = { file = "LICENSE" }
+keywords = ["padi", "arete", "smart-buildings", "iot", "api-client"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Communications",
+]
+
+[project.urls]
+Homepage = "https://padi.io"
+Repository = "https://github.com/project-arete/sdk.git"
+Issues = "https://github.com/project-arete/sdk/issues"
+
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
