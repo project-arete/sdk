@@ -1,7 +1,7 @@
 {
   "name": "arete-sdk",
   "version": "0.1.4",
-  "description": "The Project Arete SDK",
+  "description": "The Project Arete SDK for smart buildings",
   "main": "index.js",
   "repository": {
     "type": "git",
