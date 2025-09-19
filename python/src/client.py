@@ -6,6 +6,7 @@ import socket
 import time
 from system import get_system_id, System
 
+
 class Client:
     def __init__(self, websocket):
         self.cache = {}
@@ -69,14 +70,14 @@ class Client:
     def version(self):
         return self.cache.get('version', None)
 
-    def wait_for_open(self, timeout_secs = 5):
+    def wait_for_open(self, timeout_secs=5):
         start_time = time.time()
         while time.time() - start_time < timeout_secs:
             if self.websocket.state == State.OPEN and self.version() is not None:
                 return
             time.sleep(0.1)
 
-    def wait_for_response(self, transaction, timeout_secs = 5):
+    def wait_for_response(self, transaction, timeout_secs=5):
         start_time = time.time()
         while time.time() - start_time < timeout_secs:
             if transaction not in self.requests:
@@ -90,6 +91,7 @@ class Client:
                 return
             time.sleep(0.1)
         raise Exception('Timed out waiting for response')
+
 
 def receive_messages(self):
     for message in self.websocket:

@@ -4,6 +4,7 @@
 ### Added
 - [#76](https://github.com/project-arete/sdk/issues/76) Provide System, Node, Context, Provider, and Consumer objects for developer convenience
 - [#57](https://github.com/project-arete/sdk/issues/57) (Python) Support observing update events
+- [#49](https://github.com/project-arete/sdk/issues/49) (Python) Enable static analysis during CI
 - [#48](https://github.com/project-arete/sdk/issues/48) Added license files
 
 ### Changed

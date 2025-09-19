@@ -49,6 +49,8 @@ sys.stderr.write('Switch is initially {}\n'.format('ON' if state else 'OFF'))
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
 last_state = state
+
+
 def detect_change(channel):
     global last_state
     while True:
@@ -59,14 +61,18 @@ def detect_change(channel):
             last_state = state
         else:
             sleep(0.1)
+
+
 change_detector = Thread(target=detect_change, args=(client, ))
 change_detector.daemon = True
 change_detector.start()
+
 
 # Register shutdown handling
 @atexit.register
 def cleanup():
     GPIO.cleanup()
+
 
 # Startup complete
 sys.stderr.write('Switch service started\n')

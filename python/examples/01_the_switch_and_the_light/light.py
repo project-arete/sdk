@@ -40,18 +40,23 @@ sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
 consumer = context.consumer(PADI_LIGHT_PROFILE)
 sys.stderr.write(f'Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
+
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
 def detect_change(event):
     if event['property'] == 'sOut':
         desired_state = event['value'] == '1'
         GPIO.output(GPIO23, desired_state)
         sys.stderr.write('Light is now {}\n'.format('ON' if desired_state else 'OFF'))
+
+
 consumer.watch(detect_change)
+
 
 # Register shutdown handling
 @atexit.register
 def cleanup():
     GPIO.cleanup()
+
 
 # Startup complete
 sys.stderr.write('Light service started\n')
