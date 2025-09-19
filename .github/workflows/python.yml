@@ -24,4 +24,4 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: flake8
-        run: flake8 python/ --count --max-complexity=15 --max-line-length=120 --statistics
+        uses: py-actions/flake8@v2
