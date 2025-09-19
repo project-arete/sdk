@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "arete-sdk"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "gpio-cdev",
  "hostname",

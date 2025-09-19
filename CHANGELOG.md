@@ -1,6 +1,6 @@
 # Project Arete SDK Changelog
 
-## [Unreleased]
+## [0.1.5] - 2025-09-19
 ### Added
 - [#81](https://github.com/project-arete/sdk/issues/81) (Python) Publish tag releases to pypi.org
 - [#76](https://github.com/project-arete/sdk/issues/76) Provide System, Node, Context, Provider, and Consumer objects for developer convenience
