@@ -1,6 +1,6 @@
 [project]
 name = "arete-sdk"
-version = "0.1.1"
+version = "0.1.4"
 description = "The Project Arete SDK for smart buildings"
 readme = "README.md"
 requires-python = ">=3.11"
