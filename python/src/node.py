@@ -1,5 +1,6 @@
 from context import Context
 
+
 class Node:
     def __init__(self, client, system, id):
         self.client = client
