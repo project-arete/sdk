@@ -23,20 +23,13 @@ let client = new Client({
 await client.waitForOpen(5000);
 console.log('Connected to Arete control plane');
 
-// Register this node and its context with the control plane
+// Register with the control plane
 let system = await client.system();
 let node = await system.node(NODE_ID, NODE_NAME, false);
-console.log(`Registered as node ${NODE_ID}`);
 let context = await node.context(CONTEXT_ID, CONTEXT_NAME);
-console.log(`Registered context ${CONTEXT_ID} for node ${NODE_ID}`);
-
-// Register as a consumer of state for the "padi.light" profile
-let consumer = await context.consumer(PADI_LIGHT_PROFILE);
-console.log(
-  `Registered as a consumer of state for ${PADI_LIGHT_PROFILE} profile for context ${CONTEXT_ID}`,
-);
 
 // Detect initial desired state, plus future changes to desired state, and try to actualize it
+let consumer = await context.consumer(PADI_LIGHT_PROFILE);
 consumer.watch((event) => {
   if (event.property == 'sOut') {
     const desiredState = event.value == '1';
