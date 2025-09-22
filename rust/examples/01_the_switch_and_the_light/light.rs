@@ -25,7 +25,6 @@ pub fn main() {
     // Configure pin
     let mut chip = Chip::new("/dev/gpiochip0").unwrap();
     let pin = chip.get_line(GPIO23).unwrap();
-    let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, NODE_NAME).unwrap();
 
     // Connect to Arete control plane
     let _ = rustls::crypto::ring::default_provider().install_default();
@@ -39,8 +38,18 @@ pub fn main() {
     let node = system.node(NODE_ID, NODE_NAME, false, None).unwrap();
     let context = node.context(CONTEXT_ID, CONTEXT_NAME).unwrap();
 
-    // Detect current desired state, plus future changes to it, and try to actualize it
+    // Read initial actual state of the light, and sync it with Arete
+    let state = pin
+        .request(LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW, 0, NODE_NAME)
+        .unwrap()
+        .get_value()
+        .unwrap()
+        > 0;
     let consumer = context.consumer(PADI_LIGHT_PROFILE).unwrap();
+    consumer.put("cState", if state { "1" } else { "0" }).unwrap();
+    eprintln!("Light is initially {}", if state { "ON" } else { "OFF" });
+
+    // Detect future changes to desired state, and try to actualize it
     std::thread::spawn(move || {
         let updates_rx = consumer.watch().unwrap();
         loop {
@@ -50,7 +59,9 @@ pub fn main() {
                     Value::String(value) => value == "1",
                     _ => false,
                 };
+                let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, NODE_NAME).unwrap();
                 pin_handle.set_value(if desired_state { 1 } else { 0 }).unwrap();
+                consumer.put("cState", if desired_state { "1" } else { "0" }).unwrap();
                 eprintln!("Light is now {}", if desired_state { "ON" } else { "OFF" });
             }
         }
