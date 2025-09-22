@@ -34,10 +34,7 @@ impl System {
 pub fn get_system_id() -> Result<String, Error> {
     use base64::prelude::*;
     let id = get_system_uuid()?;
-    let deyphenated = id.to_string().replace('-', "");
-    let mut buf = String::new();
-    BASE64_STANDARD.encode_string(deyphenated, &mut buf);
-    Ok(buf)
+    Ok(BASE64_STANDARD.encode(id.as_bytes()))
 }
 
 #[cfg(target_os = "macos")]
