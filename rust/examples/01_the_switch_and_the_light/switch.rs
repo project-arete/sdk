@@ -31,18 +31,11 @@ pub fn main() {
     client
         .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
-    eprintln!("Connected to Arete control plane");
 
-    // Register this node and its context with the control plane
+    // Register with the control plane
     let system = client.system().unwrap();
     let node = system.node(NODE_ID, NODE_NAME, false, None).unwrap();
-    eprintln!("Registered as node {NODE_ID}");
     let context = node.context(CONTEXT_ID, CONTEXT_NAME).unwrap();
-    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID}");
-
-    // Register as a provider of state for the "padi.light" profile
-    let provider = context.provider(PADI_LIGHT_PROFILE).unwrap();
-    eprintln!("Registered as provider of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Read initial switch state, and sync it with Arete
     let line_request_flags = LineRequestFlags::INPUT | LineRequestFlags::ACTIVE_LOW;
@@ -52,6 +45,7 @@ pub fn main() {
         .get_value()
         .unwrap()
         > 0;
+    let provider = context.provider(PADI_LIGHT_PROFILE).unwrap();
     provider.put("sOut", if state { "1" } else { "0" }).unwrap();
     eprintln!("Switch is initially {}", if state { "ON" } else { "OFF" });
 

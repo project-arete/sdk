@@ -33,20 +33,14 @@ pub fn main() {
     client
         .wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS))
         .unwrap();
-    eprintln!("Connected to Arete control plane");
 
-    // Register this node and its context with the control plane
+    // Register with the control plane
     let system = client.system().unwrap();
     let node = system.node(NODE_ID, NODE_NAME, false, None).unwrap();
-    eprintln!("Registered as node {NODE_ID}");
     let context = node.context(CONTEXT_ID, CONTEXT_NAME).unwrap();
-    eprintln!("Registered context {CONTEXT_ID} for node {NODE_ID}");
-
-    // Register as a consumer of state for the "padi.light" profile
-    let consumer = context.consumer(PADI_LIGHT_PROFILE).unwrap();
-    eprintln!("Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}");
 
     // Detect current desired state, plus future changes to it, and try to actualize it
+    let consumer = context.consumer(PADI_LIGHT_PROFILE).unwrap();
     std::thread::spawn(move || {
         let updates_rx = consumer.watch().unwrap();
         loop {
