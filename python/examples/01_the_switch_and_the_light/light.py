@@ -29,16 +29,10 @@ client = Client.connect('wss://dashboard.test.cns.dev:443', ssl=ssl_context)
 client.wait_for_open()
 sys.stderr.write('Connected to Arete control plane\n')
 
-# Register this node and its context with the control plane
+# Register with the control plane
 system = client.system()
 node = system.node(NODE_ID, NODE_NAME)
-sys.stderr.write(f'Registered as node {NODE_ID}\n')
 context = node.context(CONTEXT_ID, CONTEXT_NAME)
-sys.stderr.write(f'Registered context {CONTEXT_ID} for node {NODE_ID}\n')
-
-# Register as a consumer of state for the "padi.light" profile
-consumer = context.consumer(PADI_LIGHT_PROFILE)
-sys.stderr.write(f'Registered as consumer of state for {PADI_LIGHT_PROFILE} profile for context {CONTEXT_ID}\n')
 
 
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
@@ -49,6 +43,7 @@ def detect_change(event):
         sys.stderr.write('Light is now {}\n'.format('ON' if desired_state else 'OFF'))
 
 
+consumer = context.consumer(PADI_LIGHT_PROFILE)
 consumer.watch(detect_change)
 
 
