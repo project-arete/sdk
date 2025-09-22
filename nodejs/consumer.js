@@ -11,8 +11,27 @@ export class Consumer {
     this.profile = profile;
   }
 
+  #profileKeyPrefix() {
+    return `cns/${this.context.node.system.id}/nodes/${this.context.node.id}/contexts/${this.context.id}/consumer/${this.profile}/`;
+  }
+
+  #propertyKey(property) {
+    const profileKeyPrefix = this.#profileKeyPrefix();
+    return `${profileKeyPrefix}properties/${property}`;
+  }
+
+  get(property, def = null) {
+    const key = this.#propertyKey(property);
+    return this.#client.get(key, def);
+  }
+
+  put(property, value) {
+    const key = this.#propertyKey(property);
+    return this.#client.put(key, value);
+  }
+
   watch(handler) {
-    const keyPrefix = `cns/${this.context.node.system.id}/nodes/${this.context.node.id}/contexts/${this.context.id}/consumer/${this.profile}/`;
+    const keyPrefix = this.#profileKeyPrefix();
     const re = new RegExp(`connections/(\\w+)/properties/(\\w+)$`);
     this.#client.on('update', (event) => {
       for (let [key, value] of Object.entries(event.keys)) {

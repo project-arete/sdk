@@ -1,5 +1,9 @@
 # Project Arete SDK Changelog
 
+## [Unreleased]
+### Added
+- [#90](https://github.com/project-arete/sdk/issues/90) Consumer and Provider classes/structs both require get, put, and watch capabilities
+
 ## [0.1.5] - 2025-09-19
 ### Added
 - [#81](https://github.com/project-arete/sdk/issues/81) (Python) Publish tag releases to pypi.org
