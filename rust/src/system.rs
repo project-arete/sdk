@@ -6,11 +6,11 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub struct System {
     client: Client,
-    pub id: Uuid,
+    pub id: String,
 }
 
 impl System {
-    pub(crate) fn new(client: Client, id: Uuid) -> Self {
+    pub(crate) fn new(client: Client, id: String) -> Self {
         Self { client, id }
     }
 
@@ -31,9 +31,18 @@ impl System {
     }
 }
 
+pub fn get_system_id() -> Result<String, Error> {
+    use base64::prelude::*;
+    let id = get_system_uuid()?;
+    let deyphenated = id.to_string().replace('-', "");
+    let mut buf = String::new();
+    BASE64_STANDARD.encode_string(deyphenated, &mut buf);
+    Ok(buf)
+}
+
 #[cfg(target_os = "macos")]
 #[allow(unused)]
-pub fn get_system_id() -> Result<Uuid, Error> {
+pub fn get_system_uuid() -> Result<Uuid, Error> {
     use serde::Deserialize;
     use std::process::Command;
     use std::str::FromStr;
@@ -72,7 +81,7 @@ pub fn get_system_id() -> Result<Uuid, Error> {
 
 #[cfg(target_os = "linux")]
 #[allow(unused)]
-pub fn get_system_id() -> Result<Uuid, Error> {
+pub fn get_system_uuid() -> Result<Uuid, Error> {
     let model = get_model()?;
     let serial_number = get_serial_number()?;
     let model_plus_serial_number = format!("{model}:{serial_number}");
