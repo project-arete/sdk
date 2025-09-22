@@ -19,7 +19,6 @@ PADI_LIGHT_PROFILE = 'padi.light'
 
 # Configure pin for output
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(GPIO23, GPIO.OUT)
 
 # Connect to Arete control plane
 ssl_context = ssl.SSLContext(protocol=ssl.PROTOCOL_TLS_CLIENT)
@@ -34,16 +33,23 @@ system = client.system()
 node = system.node(NODE_ID, NODE_NAME)
 context = node.context(CONTEXT_ID, CONTEXT_NAME)
 
+# Read initial actual state of the light, and sync it with Arete
+GPIO.setup(GPIO23, GPIO.IN)
+state = GPIO.input(GPIO23) == 0
+consumer = context.consumer(PADI_LIGHT_PROFILE)
+consumer.put("cState", '1' if state else '0')
+sys.stderr.write('Light is initially {}\n'.format('ON' if state else 'OFF'))
 
-# Detect initial desired state, plus future changes to desired state, and try to actualize it
+
+# Detect future changes to desired state, and try to actualize it
 def detect_change(event):
     if event['property'] == 'sOut':
         desired_state = event['value'] == '1'
+        GPIO.setup(GPIO23, GPIO.OUT)
         GPIO.output(GPIO23, desired_state)
         sys.stderr.write('Light is now {}\n'.format('ON' if desired_state else 'OFF'))
 
 
-consumer = context.consumer(PADI_LIGHT_PROFILE)
 consumer.watch(detect_change)
 
 
