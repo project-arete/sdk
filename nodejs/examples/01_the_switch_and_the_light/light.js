@@ -42,6 +42,7 @@ consumer.watch((event) => {
         throw err;
       }
     });
+    consumer.put('cState', desiredState ? '1' : '0');
     console.log('Light is now', desiredState ? 'ON' : 'OFF');
   }
 });

@@ -61,6 +61,7 @@ pub fn main() {
                 };
                 let pin_handle = pin.request(LineRequestFlags::OUTPUT, 0, NODE_NAME).unwrap();
                 pin_handle.set_value(if desired_state { 1 } else { 0 }).unwrap();
+                consumer.put("cState", if desired_state { "1" } else { "0" }).unwrap();
                 eprintln!("Light is now {}", if desired_state { "ON" } else { "OFF" });
             }
         }

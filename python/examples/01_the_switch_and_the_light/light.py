@@ -47,6 +47,7 @@ def detect_change(event):
         desired_state = event['value'] == '1'
         GPIO.setup(GPIO23, GPIO.OUT)
         GPIO.output(GPIO23, desired_state)
+        consumer.put("cState", '1' if desired_state else '0')
         sys.stderr.write('Light is now {}\n'.format('ON' if desired_state else 'OFF'))
 
 
