@@ -34,6 +34,7 @@ system = client.system()
 node = system.node(NODE_ID, NODE_NAME)
 context = node.context(CONTEXT_ID, CONTEXT_NAME)
 
+
 # Detect initial desired state, plus future changes to desired state, and try to actualize it
 def detect_change(event):
     if event['property'] == 'sOut':
