@@ -11,8 +11,46 @@ export class Provider {
     this.profile = profile;
   }
 
+  #profileKeyPrefix() {
+    return `cns/${this.context.node.system.id}/nodes/${this.context.node.id}/contexts/${this.context.id}/provider/${this.profile}/`;
+  }
+
+  #propertyKey(property) {
+    const profileKeyPrefix = this.#profileKeyPrefix();
+    return `${profileKeyPrefix}properties/${property}`;
+  }
+
+  get(property, def = null) {
+    const key = this.#propertyKey(property);
+    return this.#client.get(key, def);
+  }
+
   put(property, value) {
-    const key = `cns/${this.context.node.system.id}/nodes/${this.context.node.id}/contexts/${this.context.id}/provider/${this.profile}/properties/${property}`;
+    const key = this.#propertyKey(property);
     return this.#client.put(key, value);
+  }
+
+  watch(handler) {
+    const keyPrefix = this.#profileKeyPrefix();
+    const re = new RegExp(`connections/(\\w+)/properties/(\\w+)$`);
+    this.#client.on('update', (event) => {
+      for (let [key, value] of Object.entries(event.keys)) {
+        if (!key.startsWith(keyPrefix)) {
+          continue;
+        }
+        const captures = key.match(re);
+        if (captures.length < 3) {
+          continue;
+        }
+        const connection = captures[1];
+        const property = captures[2];
+        const changeEvent = {
+          connection,
+          property,
+          value,
+        };
+        handler(changeEvent);
+      }
+    });
   }
 }
