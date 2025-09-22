@@ -7,12 +7,27 @@ class Consumer:
         self.context = context
         self.profile = profile
 
-    def watch(self, fn):
+    def profile_key_prefix(self):
         system_id = self.context.node.system.id
         node_id = self.context.node.id
         context_id = self.context.id
         profile = self.profile
-        key_prefix = f'cns/{system_id}/nodes/{node_id}/contexts/{context_id}/consumer/{profile}/'
+        return f'cns/{system_id}/nodes/{node_id}/contexts/{context_id}/consumer/{profile}/'
+
+    def property_key(self, property):
+        profile_key_prefix = self.profile_key_prefix()
+        return f'{profile_key_prefix}properties/{property}'
+
+    def get(self, property):
+        key = self.property_key(property)
+        self.client.get(key)
+
+    def put(self, property, value):
+        key = self.property_key(property)
+        self.client.put(key, value)
+
+    def watch(self, fn):
+        key_prefix = self.profile_key_prefix()
 
         def on_update(event):
             for key, value in event['keys'].items():
