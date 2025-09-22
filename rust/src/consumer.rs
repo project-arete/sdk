@@ -32,12 +32,32 @@ impl Consumer {
         }
     }
 
-    pub fn watch(&self) -> Result<Receiver<ChangeEvent>, Error> {
+    fn profile_key_prefix(&self) -> String {
         let system_id = self.context.node.system.id.to_string();
         let node_id = &self.context.node.id;
         let context_id = &self.context.id;
         let profile = &self.profile;
-        let key_prefix = format!("cns/{system_id}/nodes/{node_id}/contexts/{context_id}/consumer/{profile}/");
+        format!("cns/{system_id}/nodes/{node_id}/contexts/{context_id}/consumer/{profile}/")
+    }
+
+    fn property_key(&self, property: &str) -> String {
+        let profile_key_prefix = self.profile_key_prefix();
+        format!("{profile_key_prefix}properties/{property}")
+    }
+
+    pub fn get(&self, property: &str, default_value: Option<Value>) -> Result<Option<Value>, Error> {
+        let key = self.property_key(property);
+        self.client.get(&key, default_value)
+    }
+
+    pub fn put(&self, property: &str, value: &str) -> Result<(), Error> {
+        let key = self.property_key(property);
+        let mut client = self.client.clone();
+        client.put(&key, value)
+    }
+
+    pub fn watch(&self) -> Result<Receiver<ChangeEvent>, Error> {
+        let key_prefix = self.profile_key_prefix();
         let upstream_rx = self.client.clone().on_update()?;
         let (tx, rx) = mpsc::channel();
         let re = Regex::new(r"connections/(\w+)/properties/(\w+)$")?;
