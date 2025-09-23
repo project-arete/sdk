@@ -29,11 +29,30 @@ class Provider:
     def watch(self, fn):
         key_prefix = self.profile_key_prefix()
 
+        # Start by notifying of existing cached properties
+        for key, value in self.client.keys().items():
+            if not key.startswith(key_prefix):
+                continue
+            captures = re.search('connections/(\\w+)/properties/(\\w+)$', key)
+            if captures is None:
+                continue
+            connection = captures.group(1)
+            property = captures.group(2)
+            change_event = {
+                'connection': connection,
+                'property': property,
+                'value': value,
+            }
+            fn(change_event)
+
+        # Watch for future property changes
         def on_update(event):
             for key, value in event['keys'].items():
                 if not key.startswith(key_prefix):
                     continue
                 captures = re.search('connections/(\\w+)/properties/(\\w+)$', key)
+                if captures is None:
+                    continue
                 connection = captures.group(1)
                 property = captures.group(2)
                 change_event = {

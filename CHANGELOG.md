@@ -5,6 +5,9 @@
 - [#90](https://github.com/project-arete/sdk/issues/90) Consumer and Provider classes/structs both require get, put, and watch capabilities
 - [#86](https://github.com/project-arete/sdk/issues/86) Light examples should provide feedback on actual state
 
+### Fixed
+- [#85](https://github.com/project-arete/sdk/issues/85) Python and Rust light examples fail to realize an initial state
+
 ## [0.1.5] - 2025-09-19
 ### Added
 - [#81](https://github.com/project-arete/sdk/issues/81) (Python) Publish tag releases to pypi.org

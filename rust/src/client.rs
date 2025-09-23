@@ -185,11 +185,11 @@ impl Client {
         Ok(value)
     }
 
-    pub fn keys(&self) -> Result<Vec<String>, Error> {
+    pub fn keys(&self) -> Result<Vec<(String, Value)>, Error> {
         let mut vec = vec![];
         let cache = self.state.cache.lock()?;
-        for (key, _) in cache.keys.iter() {
-            vec.push(key.clone());
+        for (k, v) in cache.keys.iter() {
+            vec.push((k.clone(), v.clone()));
         }
         Ok(vec)
     }

@@ -46,10 +46,32 @@ impl Provider {
 
     pub fn watch(&self) -> Result<Receiver<ChangeEvent>, Error> {
         let key_prefix = self.profile_key_prefix();
-        let upstream_rx = self.client.clone().on_update()?;
+        let mut client = self.client.clone();
+        let upstream_rx = client.on_update()?;
         let (tx, rx) = mpsc::channel();
         let re = Regex::new(r"connections/(\w+)/properties/(\w+)$")?;
+
+        let keys = client.keys()?;
         std::thread::spawn(move || {
+            // Start by notifying of existing cached properties
+            for (k, v) in keys.iter() {
+                if !k.starts_with(&key_prefix) {
+                    continue;
+                }
+                if let Some(captures) = re.captures(k) {
+                    let connection = captures[1].to_string();
+                    let property = captures[2].to_string();
+                    let value = v.clone();
+                    let change_event = ChangeEvent {
+                        connection,
+                        property,
+                        value,
+                    };
+                    tx.send(change_event).unwrap();
+                };
+            }
+
+            // Watch for future property changes
             for event in upstream_rx {
                 for (k, v) in event.keys.iter() {
                     if !k.starts_with(&key_prefix) {
