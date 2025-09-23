@@ -34,6 +34,8 @@ class Provider:
             if not key.startswith(key_prefix):
                 continue
             captures = re.search('connections/(\\w+)/properties/(\\w+)$', key)
+            if captures is None:
+                continue
             connection = captures.group(1)
             property = captures.group(2)
             change_event = {
