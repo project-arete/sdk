@@ -102,7 +102,18 @@ def receive_messages(self):
                 response = data['response']
                 if response == '':
                     self.requests[transaction] = {'error': None}
-        self.cache.update(data)
+
+        # Merge with cache
+        if 'stats' in data:
+            if 'stats' not in self.cache:
+                self.cache['stats'] = {}
+            self.cache['stats'].update(data['stats'])
+        if 'keys' in data:
+            if 'keys' not in self.cache:
+                self.cache['keys'] = {}
+            self.cache['keys'].update(data['keys'])
+
+        # Notify watches
         if 'keys' in data:
             for fn in self.subscribers:
                 fn(data)
