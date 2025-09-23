@@ -30,10 +30,12 @@ class Consumer:
         key_prefix = self.profile_key_prefix()
 
         # Start by notifying of existing cached properties
-        for key, value in self.client.keys():
+        for key, value in self.client.keys().items():
             if not key.startswith(key_prefix):
                 continue
             captures = re.search('connections/(\\w+)/properties/(\\w+)$', key)
+            if captures is None:
+                continue
             connection = captures.group(1)
             property = captures.group(2)
             change_event = {
