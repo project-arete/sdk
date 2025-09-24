@@ -1,8 +1,12 @@
 # Project Arete SDK for Rust
 
-## Examples
+## Installing
 
-- [#1: The Switch and The Light](examples/01_the_switch_and_the_light/)
+Add to your Rust project with:
+
+```shell
+$ cargo add arete-sdk
+```
 
 ## Using
 
@@ -14,22 +18,10 @@ client.wait_for_open(Duration::from_millis(DEFAULT_TIMEOUT_MILLIS)).unwrap();
 
 See the [examples](#examples) for further usage details.
 
-## Development Environment
+## Examples
 
-Install Rust, then:
+- [#1: The Switch and The Light](examples/01_the_switch_and_the_light/)
 
-```shell
-$ cargo add arete-sdk
-```
+## Developing
 
-## Testing
-
-```shell
-$ cargo test
-```
-
-## Integration Testing
-
-```shell
-$ TEST_ARETE_URL=wss://dashboard.test.cns.dev cargo test
-```
+See the [Developer's Guide](DEVELOPING.md) for build and test instructions.
