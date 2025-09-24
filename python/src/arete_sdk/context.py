@@ -1,5 +1,5 @@
-from consumer import Consumer
-from provider import Provider
+from arete_sdk.consumer import Consumer
+from arete_sdk.provider import Provider
 
 
 class Context:

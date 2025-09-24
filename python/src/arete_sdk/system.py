@@ -1,6 +1,6 @@
 import os
 import uuid
-from node import Node
+from arete_sdk.node import Node
 
 LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model'
 LINUX_SERIAL_NUMBER_FILENAME = '/sys/firmware/devicetree/base/serial-number'
