@@ -10,21 +10,6 @@
 $ python3 -m pip install arete-sdk
 ```
 
-## Building
-
-Activate a Python environment, if you haven't already:
-
-```shell
-$ python3 -m venv env
-$ source env/bin/activate
-```
-
-Then build + install the project:
-
-```shell
-$ python3 -m pip install .
-```
-
 ## Using
 
 ```python
@@ -40,3 +25,7 @@ client.wait_for_open()
 ```
 
 See the [examples](#examples) for further usage details.
+
+## Developing
+
+See the [Developer's Guide](DEVELOPING.md) for build and test instructions.
