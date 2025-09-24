@@ -1,5 +1,9 @@
 # Project Arete SDK for Rust
 
+## Examples
+
+- [#1: The Switch and The Light](examples/01_the_switch_and_the_light/)
+
 ## Development Environment
 
 Install Rust, then:
