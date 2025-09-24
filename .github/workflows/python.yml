@@ -26,7 +26,7 @@ jobs:
           ignore: "E402"
           max-line-length: 120
           path: "python"
-          per-file-ignores: __init__.py:F401
+          exclude: __init__.py
 
   build:
     name: Build
