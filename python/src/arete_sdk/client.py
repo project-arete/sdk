@@ -4,7 +4,7 @@ from websockets.protocol import State
 import json
 import socket
 import time
-from system import get_system_id, System
+from arete_sdk.system import get_system_id, System
 
 
 class Client:

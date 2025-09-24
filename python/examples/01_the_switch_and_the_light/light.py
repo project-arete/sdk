@@ -3,9 +3,7 @@ import ssl
 import sys
 import time
 import RPi.GPIO as GPIO
-
-sys.path.append('../../src/arete_sdk')
-from client import Client
+from arete_sdk.client import Client
 
 GPIO23 = 23
 

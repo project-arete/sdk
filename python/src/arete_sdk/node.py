@@ -1,4 +1,4 @@
-from context import Context
+from arete_sdk.context import Context
 
 
 class Node:
