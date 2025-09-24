@@ -4,6 +4,12 @@
 
 - [#1: The Switch and The Light](examples/01_the_switch_and_the_light/)
 
+## Installing
+
+```shell
+$ python3 -m pip install arete-sdk
+```
+
 ## Building
 
 Activate a Python environment, if you haven't already:
