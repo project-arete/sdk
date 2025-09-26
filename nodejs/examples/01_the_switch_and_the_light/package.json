@@ -1,6 +1,6 @@
 {
   "name": "01_the_switch_and_the_light",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A switch and a light, coordinated by Arete",
   "repository": "https://github.com/project-arete/examples.git",
   "license": "(MIT or Apache-2.0)",
