@@ -1,5 +1,9 @@
 # Project Arete SDK Changelog
 
+## [Unreleased]
+### Changed
+- [#96](https://github.com/project-arete/sdk/issues/96) (Rust) Upgrade Rust 1.88.0 → 1.90.0
+
 ## [0.1.6] - 2025-09-26
 ### Added
 - [#90](https://github.com/project-arete/sdk/issues/90) Consumer and Provider classes/structs both require get, put, and watch capabilities
