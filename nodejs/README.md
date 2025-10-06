@@ -2,10 +2,16 @@
 
 ## Installing
 
-Add to your NodeJS project with:
+Add to your NodeJS project using the latest release published to NPM with:
 
 ```shell
 $ npm install --save arete-sdk
+```
+
+Or install the local Git workspace with:
+
+```shell
+$ npm install
 ```
 
 ## Using
