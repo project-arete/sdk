@@ -134,15 +134,15 @@ impl Client {
                             let mut requests = requests_2.lock().unwrap();
                             if response.is_string() && response.as_str().unwrap_or_default().is_empty() {
                                 requests.insert(transaction, Some(Response { error: None }));
-                            } else if let Value::Object(response) = response {
-                                if let Some(error_msg) = response.get("error") {
-                                    requests.insert(
-                                        transaction,
-                                        Some(Response {
-                                            error: Some(error_msg.to_string()),
-                                        }),
-                                    );
-                                }
+                            } else if let Value::Object(response) = response
+                                && let Some(error_msg) = response.get("error")
+                            {
+                                requests.insert(
+                                    transaction,
+                                    Some(Response {
+                                        error: Some(error_msg.to_string()),
+                                    }),
+                                );
                             }
                         }
                         continue;
