@@ -7,7 +7,7 @@
   "private": false,
   "type": "module",
   "dependencies": {
-    "arete-sdk": "file:../..",
+    "arete-sdk": "^0.1.6",
     "onoff": "^6.0.3"
   }
 }
