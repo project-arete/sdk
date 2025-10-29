@@ -1,8 +1,9 @@
-                                 Apache License
-                           Version 2.0, January 2004
-                        http://www.apache.org/licenses/
 
-   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+==============================================================================
+                  This CNS/CP License is based on Apache 2.0:
+==============================================================================
+
+  TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
    1. Definitions.
 
@@ -173,29 +174,22 @@
       incurred by, or claims asserted against, such Contributor by reason
       of your accepting any such warranty or additional liability.
 
-   END OF TERMS AND CONDITIONS
+==== CNS/CP Registry Condition ====
 
-   APPENDIX: How to apply the Apache License to your work.
+  The grants of rights in Section 2 and Section 3 above are expressly 
+  conditioned on your agreement to undertake the following steps when the 
+  Work is used to create, modify, store, or administer Connection Profiles:
 
-      To apply the Apache License to your work, attach the following
-      boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
-      the brackets!)  The text should be enclosed in the appropriate
-      comment syntax for the file format. We also recommend that a
-      file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
-      identification within third-party archives.
+  1. Make any Connection Profiles created by you or your software 
+     available for anyone to access, view, and use for free and without 
+     restriction under the Creative Commons Attribution-NoDerivatives 4.0 
+     International License (CC BY-ND 4.0).
 
-   Copyright [yyyy] [name of copyright owner]
+  2. Place any Connection Profiles created into the public 
+     CNS/CP-compliant federated registry designated at cnscp.io.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Failure to comply with these requirements immediately and permanently
+  terminates all rights granted to you under this License, including 
+  but not limited to the copyright and patent licenses in Sections 2 and 3.
 
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+For more information, visit cnscp.io/license
