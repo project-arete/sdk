@@ -35,7 +35,7 @@ The mode lives **in the CP definition**, not in a config flag. Read it from the 
 1. **Never connect by address.** Connect by declared CP + role + context. A hardcoded endpoint in app logic is the anti-pattern this architecture exists to replace.
 2. **Every capability is a CP** with a canonical name (`cp:usecase.name`), exactly two asymmetric roles, a schema, constraints, context, and a deliberate mode choice. Design the CP before writing handlers.
 3. **Resolve every CP from the registry before use** (Section 3). If it isn't registered, stop — do not invent the profile.
-4. **Conflicting values across multiple connections are app-level semantics, by design.** The mechanism delivers every connection's view faithfully; it never imposes a conflict policy. If your consumer binds to N providers, *your app* decides how to aggregate (average, min, max, last-writer…). Do not "fix" this in SDK/orchestrator code — surface disagreement honestly and resolve it in the application.
+4. **Conflicting values across multiple connections are app-level semantics, by design.** The mechanism delivers every connection's view faithfully; it never imposes a conflict policy. When one of your capabilities is bound to N peers — and either role can be, see §6 — *your app* decides how to combine what it receives (average, min, max, logical OR, sum…). Do not "fix" this in SDK/orchestrator code — surface disagreement honestly and resolve it in the application.
 5. **Context is first-class.** A binding exists *in* a context; carry it, don't let authority drift across trust domains.
 6. **Assume every action is audited**, especially in Mode 1.
 
@@ -77,7 +77,7 @@ const client = new Client({ protocol: 'wss:', host: 'dashboard.test.cns.dev', po
 await client.waitForOpen(5000);
 
 // Every step of the chain returns a Promise — await all four.
-const system = await client.system();                    // cache this — see §6 gotcha 1
+const system = await client.system();                    // cache this — see §7 gotcha 1
 const node   = await system.node(nodeId, 'My App', false);
 const ctx    = await node.context(ctxId, 'My Context');
 const cap    = await ctx.provider('padi.light');         // or ctx.consumer(...)
@@ -95,25 +95,49 @@ Client emits `open` / `update` / `close` / `error`. `client.get(key, def)` reads
 
 Declaring a capability is not the first thing an application does — it is the third. Every app crosses the same gates in the same order, each a precondition for the next. User-facing apps should surface them in this order rather than bury them in a config file: a user who cannot get past gate 2 otherwise has no way to understand why nothing is happening.
 
-**Gate 1 — realm and identity.** Collect the realm address and credentials, then register a system and a node. You supply the IDs, and they **must be stable across restarts** — persist them; never generate them at startup. The SDK names the system after `os.hostname()` unless you rename it (§6 gotcha 1), so let the user set the name it will carry on the realm.
+**Gate 1 — realm and identity.** Collect the realm address and credentials, then register a system and a node. You supply the IDs, and they **must be stable across restarts** — persist them; never generate them at startup. The SDK names the system after `os.hostname()` unless you rename it (§7 gotcha 1), so let the user set the name it will carry on the realm.
 
 **Gate 2 — context.** A capability is declared *in* a context. There is no default and no global scope, so the app cannot proceed without one. Existing contexts are discoverable from the key cache — `cns/<sys>/nodes/<node>/contexts/<ctxId>/name` — and so are the capabilities declared in them: `…/contexts/<ctxId>/<provider|consumer>/<profile>/version`. Together those answer the only question that matters: *is there a context that already holds the complementary role for a CP I implement?*
 
-> **[Observed, not guaranteed]** Realms today expose the whole visible namespace to any connected client, which is what makes enumeration work. A stricter authorization model could narrow it. Do not treat full enumeration as contractual.
+> **Enumerate what you can see, and don't assume that is everything.** Visibility is granted by the realm, not by the mechanism (§6). A realm requiring no token is public and exposes its whole namespace to any client; with tokens the default becomes privacy within the realm, and an individual context may carry its own token.
 
-Three cases follow, and a UI should handle all three:
+Four cases follow, and a UI should handle all four:
 
 - **A complementary context exists** — offer *join*, and make it the default. This is the case that actually produces connections.
 - **Contexts exist, but the user wants a separate one** — offer *create* alongside them.
 - **Nothing complementary exists** — *create* is the only option; prompt for a name.
+- **A protected context** — one carrying its own token is **granted, not discovered**. It will not arrive through the picker, so accept its token as a way in rather than assuming every joinable context is visible.
 
 **The context ID is what matches; the name is only a label.** Binding happens within a context ID, and different systems routinely name the same context differently — realm-wide views group by ID and display the most common name variant. Hence the trap: two users who both choose *create* and both type "Kitchen" get two different IDs and will never bind, while the UI shows what looks like a match. Defaulting to *join* is what prevents this, which makes it load-bearing rather than a convenience.
 
-**Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§3), and on restart do not blindly re-declare (§6 gotcha 2).
+**Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§3), and on restart do not blindly re-declare (§7 gotcha 2).
 
 **Gate 4 — bind.** Declared is not connected. A capability is **bound** once it has at least one connection (`…/<role>/<profile>/connections/<connId>/…`) and **unbound — awaiting broker** while it has none. Unbound is a normal state, not an error: brokerage can take tens of seconds. Show it explicitly, with a short grace period before drawing attention to it, or users will assume the setup they just completed has failed.
 
-## 6. Known gotchas (as of SDK v0.1.6, verified live July 2026)
+## 6. Working with multiple connections
+
+A capability is not a socket. One declaration can be bound to many peers at once, each connection carrying its own independent view of the properties, and that is the normal case rather than an edge case. This is the part of CNS/CP with no analogue in the protocols you already know, so it is where inherited instincts do the most damage: pub/sub habits produce code that collapses N peers into a single value and quietly discards the thing that mattered.
+
+**Two flags, four behaviours.** `server` decides *who writes* a property; `propagate` decides *whether that write broadcasts*. They are independent, and all four combinations occur in published CPs:
+
+| | `propagate` present — **broadcast** to every connection | `propagate` absent — **addressed** to one connection |
+|---|---|---|
+| **`server` present** — provider writes | `padi.light` → `sOut` | `padi.game.beacon` → `granted` |
+| **`server` absent** — consumer writes | `padi.light` → `cState` | `padi.game.beacon` → `feed` |
+
+`propagate` has nothing to do with being a provider. Either role may own writable properties, and either role's writes may broadcast. Read both flags for every property; never infer one from the role. (`padi.test.propagate` exists to demonstrate this — it carries all four combinations in a single profile.)
+
+**Reading: every side can face many.** A consumer bound to three providers receives three values for a provider-written property. A `padi.light` switch bound to three lights is a *provider* receiving three `cState` values. Same problem, either role. Per-connection values live at `…/<role>/<profile>/connections/<connId>/properties/<prop>`, and a connection carries both sides' properties mirrored onto both endpoints.
+
+The mechanism will never resolve disagreement for you (§2 rule 4) — it delivers each connection's view faithfully and stops there. Choices taken by working applications: **average, minimum, or maximum** where values are numeric and a summary is meaningful; a **logical OR** where any peer asserting is sufficient, so a light stays lit while anyone is still holding it and tug-of-war is legal by design; a **sum** where contributions accumulate. Choose deliberately and write the choice down, because it *is* your application's semantics.
+
+**Writing: broadcast or address.** Writing to the capability property broadcasts to every connection — for a property flagged `propagate`. Writing to `…/connections/<connId>/properties/<prop>` reaches exactly one peer, which is how a response is returned to whoever asked. Both are available to whichever role owns the property.
+
+**Show the connections; do not collapse them.** The substrate always knows which peer contributed what, so a UI that renders only the aggregate is discarding information it was handed. The working pattern is one visual token per connection — a pill, a dot, a bead in the peer's colour — carrying that connection's live values, alongside a separate token for the broadcast or aggregate view. When a user asks "but who is doing this?", the answer is already in the data.
+
+**Visibility is realm-governed.** Addressed means *delivered to one peer*. It does not mean *hidden from others*: an addressed write lands in a key like any other, and who may read that key is decided by the realm. A realm requiring no token is public. With tokens, the default is privacy within the realm, and a context may carry its own token so it can be protected individually. Treat addressing as delivery, never as confidentiality — let the realm's policy, not a property flag, tell you who can see a value.
+
+## 7. Known gotchas (as of SDK v0.1.6, verified live July 2026)
 
 These are field-verified. Check whether newer SDK releases have fixed them before working around.
 
@@ -126,7 +150,7 @@ These are field-verified. Check whether newer SDK releases have fixed them befor
 7. **Registration commands must be awaited serially.** Bursting `systems`/`nodes`/`contexts`/`providers`/`consumers` commands without awaiting each response can silently drop declarations. The SDK's own command path awaits correctly — but any hand-rolled wire client must too.
 8. **Electron:** run the SDK only in the main process; expose to renderers via a preload bridge. And never `npm install` an Electron project inside a cloud-synced folder (Drive/iCloud/Dropbox) — native builds break.
 
-## 7. Designing a new capability — checklist
+## 8. Designing a new capability — checklist
 
 1. What is the CP? Name it `usecase.name`, no direction prefixes on properties.
 2. Define the two roles and which side writes each property (`server` flag).
@@ -135,7 +159,7 @@ These are field-verified. Check whether newer SDK releases have fixed them befor
 5. Plan multi-connection semantics **in the app** (aggregation, conflict display) — expect a consumer to face N providers.
 6. Then, and only then, write the handlers.
 
-## 8. References
+## 9. References
 
 | Resource | URL |
 |---|---|
