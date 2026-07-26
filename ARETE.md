@@ -107,6 +107,17 @@ ctx = node.context(ctx_id, 'My Context')
 cap = ctx.consumer('padi.light')                              # or ctx.provider(...)
 ```
 
+**Browser and PWA — the SDK does not run in a browser.** It imports `fs`, `os`, and `ws`, and derives identity from Pi hardware. Do not bundle it for the web. The working pattern is a small browser client speaking the same wire protocol — a `WebSocket`, the same key cache, and `command()` / `put()`. Project Arete's own PWAs are built this way (`browser-arete.js` in [arete-monitor-pwa](https://github.com/project-arete/arete-monitor-pwa), the widget PWA bridge, and [Firefly Island](https://github.com/project-arete/firefly-island)); copy one rather than inventing another.
+
+Browser identity is where this fails, and it fails *silently*:
+
+- Generate the system ID **once per app installation** — `crypto.randomUUID()` — and persist it before connecting. Node and context IDs likewise (22-character base62).
+- Persist it under a **storage key unique to that app** (`arete-monitor-identity`, `arete-widget-system`, …). Two apps sharing one fallback register as **the same system on the realm** — which presents as a brokerage fault and is not one.
+- Never derive the system ID from the user-facing system name, and never ship a shared hard-coded fallback.
+- Issue `systems`, `nodes`, `contexts` **one at a time, awaiting each** (§7 gotcha 7).
+
+Browsers cannot set WebSocket headers, so when bearer tokens arrive they will not reach a browser client by the route Node uses.
+
 **Auth (SDK 0.1.6 — unsettled; expect this to change).** The `Client` constructor accepts only `protocol`, `host`, and `port`. Its `username`/`password` options exist in the source but are commented out, and the connection URI is assembled from those three values alone. The only way to pass credentials today is to fold them into the `host` string as URL userinfo — `host: 'user:pass@realm.example.com'`, URL-encoded — which is a workaround rather than a supported interface, and one that puts secrets somewhere they leak into logs and error reports. Realm-issued bearer tokens are being added; until they land, treat authentication as an open question and keep credentials out of anything you commit. Open realms, including the sandbox below, accept unauthenticated connections — and a realm that requires no token is public by definition (§6).
 
 **A realm to point at.** `wss://test.aretehosting.com:443` is a shared sandbox that accepts anonymous connections — fine for first experiments, but it is shared, so treat anything you put there as public and disposable. For anything beyond a first try, create your own realm at [aretehosting.com](https://aretehosting.com): it takes a couple of minutes, it is free at the time of writing, and nobody else's experiments are in it.
@@ -119,6 +130,19 @@ Declaring a capability is not the first thing an application does — it is the 
 
 **Gate 1 — realm and identity.** Collect the realm address and credentials, then register a system and a node. You supply the IDs, and they **must be stable across restarts** — persist them; never generate them at startup. The SDK names the system after `os.hostname()` unless you rename it (§7 gotcha 1), so let the user set the name it will carry on the realm.
 
+Six identifiers, and they are not interchangeable:
+
+| Identifier | What it scopes | Persist | User-editable |
+|---|---|---|---|
+| System ID | one installation of one app | Yes | No |
+| System name | its realm-facing label | Yes | Yes |
+| Node ID | an application instance within that system | Yes | No |
+| Node name | that instance's label | Yes | Yes |
+| Context ID | the binding scope, shared across systems | Yes | No |
+| Context name | a local human label, per system | Yes | Yes |
+
+Two apps on one device are normally **two systems**, not two nodes under one — a system is an installation boundary. Project Arete's own PWAs each hold their own system identity under their own storage key, for exactly that reason.
+
 **Gate 2 — context.** A capability is declared *in* a context. There is no default and no global scope, so the app cannot proceed without one. Existing contexts are discoverable from the key cache — `cns/<sys>/nodes/<node>/contexts/<ctxId>/name` — and so are the capabilities declared in them: `…/contexts/<ctxId>/<provider|consumer>/<profile>/version`. Together those answer the only question that matters: *is there a context that already holds the complementary role for a CP I implement?*
 
 > **Enumerate what you can see, and don't assume that is everything.** Visibility is granted by the realm, not by the mechanism (§6). A realm requiring no token is public and exposes its whole namespace to any client; with tokens the default becomes privacy within the realm, and an individual context may carry its own token.
@@ -130,9 +154,15 @@ Four cases follow, and a UI should handle all four:
 - **Nothing complementary exists** — *create* is the only option; prompt for a name.
 - **A protected context** — one carrying its own token is **granted, not discovered**. It will not arrive through the picker, so accept its token as a way in rather than assuming every joinable context is visible.
 
+**Discovery is not a one-shot scan.** Other applications register contexts and capabilities continuously, so a context can appear moments after you looked — a picker that scans once and stops will miss the partner that was still starting up. Keep the list live for as long as the user is choosing from it.
+
+**Take the context's display name from `…/contexts/<ctxId>/name` and nowhere else.** CP properties such as `sLabel` or `cLabel` are capability data whose meaning is specific to that profile; they are not context metadata, and a picker that borrows them will mislabel rows the moment a different CP appears.
+
 **The context ID is what matches; the name is only a label.** Binding happens within a context ID, and different systems routinely name the same context differently — realm-wide views group by ID and display the most common name variant. Hence the trap: two users who both choose *create* and both type "Kitchen" get two different IDs and will never bind, while the UI shows what looks like a match. Defaulting to *join* is what prevents this, which makes it load-bearing rather than a convenience.
 
 **Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§3), and on restart do not blindly re-declare (§7 gotcha 2).
+
+**Creating a context is not declaring a capability.** Registering a context makes it exist; nothing can match it until you also declare your role there. A UI that says "created" at gate 2 invites the user to expect an immediate connection and then look for the fault. Show it as *created, not yet published*, and do not count it as compatible — yours or anyone else's — until the declaration has landed.
 
 **Gate 4 — bind.** Declared is not connected. A capability is **bound** once it has at least one connection (`…/<role>/<profile>/connections/<connId>/…`) and **unbound — awaiting broker** while it has none. Unbound is a normal state, not an error — a capability with no counterpart yet simply waits. On a healthy realm binding takes about a second, but it is never instantaneous, so show the state explicitly with a short grace period before drawing attention to it. Otherwise users assume the setup they just completed has failed.
 
@@ -163,7 +193,7 @@ The mechanism will never resolve disagreement for you (§2 rule 4) — it delive
 
 These are field-verified. Check whether newer SDK releases have fixed them before working around.
 
-1. **`client.system()` is not idempotent.** Every call re-registers the system under `os.hostname()`. Cache the System instance; if you rename the system, re-issue the rename after any re-registration.
+1. **`client.system()` overwrites your system name.** Every call re-registers the system under the local hostname (`os.hostname()`, `socket.gethostname()`) — verified live: a system you renamed reverts as soon as `system()` is called again. Cache the System instance instead of re-fetching it, and re-issue your chosen name after anything that re-registers.
 2. **Capability re-declaration wipes values.** Re-issuing a `providers`/`consumers` declaration for an *existing* capability resets all its property values to empty strings — and the empties propagate into every connection. On startup/reconnect, check whether `…/<role>/<profile>/version` already exists in the key cache; if so, **skip the declaration** and operate on the existing key paths. (Values persist on the realm across disconnects — "values gone after restart" is almost always this bug, not realm data loss.)
 3. **Don't use `.watch()`** (Node v0.1.6) — it has a null-match crash. Derive state from `client.keys` inside an `update` event handler instead.
 4. **No keepalive, fragile reconnect.** The SDK sends no WebSocket pings and won't retry an unexpected clean close. Long-lived apps should add a ping (~30s) and reconnect logic — and on reconnect, re-attach without re-declaring capabilities (see gotcha 2).
@@ -171,6 +201,7 @@ These are field-verified. Check whether newer SDK releases have fixed them befor
 6. **System ID off-Raspberry-Pi — no supported fix.** The `Client` constructor calls `get_system_id()` immediately; it reads the Pi device-tree files and otherwise throws `Unable to detect System ID on this platform`. There is no `systemId` constructor option, so this blocks ordinary Linux, macOS, Windows, containers, CI, and Electron development hosts. **Python:** rebind `arete_sdk.client.get_system_id` before creating a client — two lines, shown in §4. **Node:** the ID is a private field, so the only route is patching the installed SDK at install time (a `postinstall` script substituting a stable UUID, e.g. from an environment seed via `uuidv5`), re-applied on every `npm install`. Either way the ID must be **persisted**, not regenerated. A public identity-injection option is the right fix; treat this as an open SDK gap, not something your application configures away.
 7. **Registration commands must be awaited serially.** Bursting `systems`/`nodes`/`contexts`/`providers`/`consumers` commands without awaiting each response can silently drop declarations. The SDK's own command path awaits correctly — but any hand-rolled wire client must too.
 8. **Electron:** run the SDK only in the main process; expose to renderers via a preload bridge. And never `npm install` an Electron project inside a cloud-synced folder (Drive/iCloud/Dropbox) — native builds break.
+9. **Registration calls are upserts — they overwrite names.** `system.node(id, name)` and `node.context(id, name)` are writes, not read-only attaches: each one sets the name you pass. Verified live — re-registering a context under a different name replaces the one the user chose. There is no attach-without-mutating call, so on reconnect either pass exactly the name you want kept, or don't re-register at all and work from the existing key paths.
 
 ## 8. Designing a new capability — checklist
 
