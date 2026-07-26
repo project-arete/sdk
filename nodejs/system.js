@@ -7,6 +7,7 @@ import { Node } from './node.js';
 const LINUX_MODEL_FILENAME = '/sys/firmware/devicetree/base/model';
 const LINUX_SERIAL_NUMBER_FILENAME =
   '/sys/firmware/devicetree/base/serial-number';
+const LINUX_MACHINE_ID_FILENAME = '/etc/machine-id';
 
 export class System {
   #client;
@@ -33,16 +34,26 @@ export function get_system_id() {
     fs.existsSync(LINUX_MODEL_FILENAME) &&
     fs.existsSync(LINUX_SERIAL_NUMBER_FILENAME)
   ) {
-    return get_system_id_linux();
+    return get_system_id_linux_devicetree();
+  }
+  if (fs.existsSync(LINUX_MACHINE_ID_FILENAME)) {
+    return get_system_id_linux_machine_id();
   }
   throw 'Unable to detect System ID on this platform';
 }
 
-function get_system_id_linux() {
+function get_system_id_linux_devicetree() {
   const model = fs.readFileSync(LINUX_MODEL_FILENAME);
   const serialNumber = fs.readFileSync(LINUX_SERIAL_NUMBER_FILENAME);
   const modelPlusSerialNumber = `${model}:${serialNumber}`;
 
   const id = uuidv5('oid', modelPlusSerialNumber);
+  return id;
+}
+
+function get_system_id_linux_machine_id() {
+  const machineId = fs.readFileSync(LINUX_MACHINE_ID_FILENAME, 'utf8').trim();
+
+  const id = uuidv5('oid', machineId);
   return id;
 }
