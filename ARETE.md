@@ -77,7 +77,7 @@ const client = new Client({ protocol: 'wss:', host: 'dashboard.test.cns.dev', po
 await client.waitForOpen(5000);
 
 // Every step of the chain returns a Promise — await all four.
-const system = await client.system();                    // cache this — see §5 gotcha 1
+const system = await client.system();                    // cache this — see §6 gotcha 1
 const node   = await system.node(nodeId, 'My App', false);
 const ctx    = await node.context(ctxId, 'My Context');
 const cap    = await ctx.provider('padi.light');         // or ctx.consumer(...)
@@ -91,7 +91,29 @@ Client emits `open` / `update` / `close` / `error`. `client.get(key, def)` reads
 
 **Public test realm:** `wss://dashboard.test.cns.dev:443` (no auth). Brokerage can take tens of seconds — use generous timeouts in test rigs.
 
-## 5. Known gotchas (as of SDK v0.1.6, verified live July 2026)
+## 5. Bootstrapping an application into a realm
+
+Declaring a capability is not the first thing an application does — it is the third. Every app crosses the same gates in the same order, each a precondition for the next. User-facing apps should surface them in this order rather than bury them in a config file: a user who cannot get past gate 2 otherwise has no way to understand why nothing is happening.
+
+**Gate 1 — realm and identity.** Collect the realm address and credentials, then register a system and a node. You supply the IDs, and they **must be stable across restarts** — persist them; never generate them at startup. The SDK names the system after `os.hostname()` unless you rename it (§6 gotcha 1), so let the user set the name it will carry on the realm.
+
+**Gate 2 — context.** A capability is declared *in* a context. There is no default and no global scope, so the app cannot proceed without one. Existing contexts are discoverable from the key cache — `cns/<sys>/nodes/<node>/contexts/<ctxId>/name` — and so are the capabilities declared in them: `…/contexts/<ctxId>/<provider|consumer>/<profile>/version`. Together those answer the only question that matters: *is there a context that already holds the complementary role for a CP I implement?*
+
+> **[Observed, not guaranteed]** Realms today expose the whole visible namespace to any connected client, which is what makes enumeration work. A stricter authorization model could narrow it. Do not treat full enumeration as contractual.
+
+Three cases follow, and a UI should handle all three:
+
+- **A complementary context exists** — offer *join*, and make it the default. This is the case that actually produces connections.
+- **Contexts exist, but the user wants a separate one** — offer *create* alongside them.
+- **Nothing complementary exists** — *create* is the only option; prompt for a name.
+
+**The context ID is what matches; the name is only a label.** Binding happens within a context ID, and different systems routinely name the same context differently — realm-wide views group by ID and display the most common name variant. Hence the trap: two users who both choose *create* and both type "Kitchen" get two different IDs and will never bind, while the UI shows what looks like a match. Defaulting to *join* is what prevents this, which makes it load-bearing rather than a convenience.
+
+**Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§3), and on restart do not blindly re-declare (§6 gotcha 2).
+
+**Gate 4 — bind.** Declared is not connected. A capability is **bound** once it has at least one connection (`…/<role>/<profile>/connections/<connId>/…`) and **unbound — awaiting broker** while it has none. Unbound is a normal state, not an error: brokerage can take tens of seconds. Show it explicitly, with a short grace period before drawing attention to it, or users will assume the setup they just completed has failed.
+
+## 6. Known gotchas (as of SDK v0.1.6, verified live July 2026)
 
 These are field-verified. Check whether newer SDK releases have fixed them before working around.
 
@@ -104,7 +126,7 @@ These are field-verified. Check whether newer SDK releases have fixed them befor
 7. **Registration commands must be awaited serially.** Bursting `systems`/`nodes`/`contexts`/`providers`/`consumers` commands without awaiting each response can silently drop declarations. The SDK's own command path awaits correctly — but any hand-rolled wire client must too.
 8. **Electron:** run the SDK only in the main process; expose to renderers via a preload bridge. And never `npm install` an Electron project inside a cloud-synced folder (Drive/iCloud/Dropbox) — native builds break.
 
-## 6. Designing a new capability — checklist
+## 7. Designing a new capability — checklist
 
 1. What is the CP? Name it `usecase.name`, no direction prefixes on properties.
 2. Define the two roles and which side writes each property (`server` flag).
@@ -113,7 +135,7 @@ These are field-verified. Check whether newer SDK releases have fixed them befor
 5. Plan multi-connection semantics **in the app** (aggregation, conflict display) — expect a consumer to face N providers.
 6. Then, and only then, write the handlers.
 
-## 7. References
+## 8. References
 
 | Resource | URL |
 |---|---|
