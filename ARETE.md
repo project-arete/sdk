@@ -59,6 +59,8 @@ Registry governance: published CPs are **immutable** — design deliberately bef
 
 Repo: **https://github.com/project-arete/sdk** — bindings for Node (`nodejs/`), Python (`python/`), Rust (`rust/`). The repo is authoritative for exact API names; this file is authoritative for architecture and conventions.
 
+> **Read this before your first line of code.** The `Client` constructor derives a system ID from Raspberry Pi hardware and throws `Unable to detect System ID on this platform` everywhere else. There is no constructor option for it (§7 gotcha 6). **On Python you can work around it in two lines and it works today. On Node you cannot** — the ID is a private field set in the constructor, so off-Pi Node requires patching the installed SDK at install time. If you are starting out and not on a Pi, **start with Python.**
+
 The identity chain is the same in every binding, and IDs must stay **stable across restarts**:
 
 ```
@@ -66,14 +68,14 @@ Client → system() → node(id, name, upstream) → context(id, name)
        → provider(profile) | consumer(profile)     // .get / .put on properties
 ```
 
-**Node** (`npm install arete-sdk`, ESM only):
+**Node** (`npm install arete-sdk`, ESM only) — off a Raspberry Pi this needs the SDK patched first, see above:
 
 ```javascript
 import { Client } from 'arete-sdk';
 
 // Always pass protocol/host/port explicitly: the constructor otherwise falls
 // back to browser `location` globals, which do not exist under Node.
-const client = new Client({ protocol: 'wss:', host: 'dashboard.test.cns.dev', port: 443 });
+const client = new Client({ protocol: 'wss:', host: 'test.aretehosting.com', port: 443 });
 await client.waitForOpen(5000);
 
 // Every step of the chain returns a Promise — await all four.
@@ -85,11 +87,31 @@ const cap    = await ctx.provider('padi.light');         // or ctx.consumer(...)
 
 Client emits `open` / `update` / `close` / `error`. `client.get(key, def)` reads the local key cache; `client.put(key, value)` is a raw key write (used for addressed per-connection writes).
 
-**Python** (install from git: `pip install "arete-sdk @ git+https://github.com/project-arete/sdk.git#subdirectory=python"`): synchronous API mirroring the above; the client runs a daemon receiver thread.
+**Python** (`pip install "arete-sdk @ git+https://github.com/project-arete/sdk.git#subdirectory=python"`, plus `websockets>=13,<16`; needs Python 3.11+). The identity chain is the same, but **construction is not** — the client is created by a `connect` classmethod, not by calling `Client(...)`. The API is synchronous and runs a daemon receiver thread.
 
-**Auth (SDK 0.1.6 — unsettled; expect this to change).** The `Client` constructor accepts only `protocol`, `host`, and `port`. Its `username`/`password` options exist in the source but are commented out, and the connection URI is assembled from those three values alone. The only way to pass credentials today is to fold them into the `host` string as URL userinfo — `host: 'user:pass@realm.example.com'`, URL-encoded — which is a workaround rather than a supported interface, and one that puts secrets somewhere they leak into logs and error reports. Realm-issued bearer tokens are being added; until they land, treat authentication as an open question and keep credentials out of anything you commit. Test realms, including `dashboard.test.cns.dev`, accept unauthenticated connections.
+```python
+import time
+import arete_sdk.client as ac
 
-**Public test realm:** `wss://dashboard.test.cns.dev:443` (no auth). Brokerage can take tens of seconds — use generous timeouts in test rigs.
+# Off a Raspberry Pi, substitute a stable system ID before creating a client.
+# Persist this value — it must not change between restarts.
+ac.get_system_id = lambda: 'a7c1e2d4-5b6f-4a80-9c31-2e8f0d5b7a44'
+
+client = ac.Client.connect('wss://test.aretehosting.com:443')
+while (client.stats() or {}).get('connection') != 'online':   # see §7 gotcha 5
+    time.sleep(0.25)
+
+system = client.system()
+node = system.node(node_id, 'My App', False)
+ctx = node.context(ctx_id, 'My Context')
+cap = ctx.consumer('padi.light')                              # or ctx.provider(...)
+```
+
+**Auth (SDK 0.1.6 — unsettled; expect this to change).** The `Client` constructor accepts only `protocol`, `host`, and `port`. Its `username`/`password` options exist in the source but are commented out, and the connection URI is assembled from those three values alone. The only way to pass credentials today is to fold them into the `host` string as URL userinfo — `host: 'user:pass@realm.example.com'`, URL-encoded — which is a workaround rather than a supported interface, and one that puts secrets somewhere they leak into logs and error reports. Realm-issued bearer tokens are being added; until they land, treat authentication as an open question and keep credentials out of anything you commit. Open realms, including the sandbox below, accept unauthenticated connections — and a realm that requires no token is public by definition (§6).
+
+**A realm to point at.** `wss://test.aretehosting.com:443` is a shared sandbox that accepts anonymous connections — fine for first experiments, but it is shared, so treat anything you put there as public and disposable. For anything beyond a first try, create your own realm at [aretehosting.com](https://aretehosting.com): it takes a couple of minutes, it is free at the time of writing, and nobody else's experiments are in it.
+
+On a healthy realm brokerage is fast — a provider and consumer declared in the same context bind in about a second, and a broadcast write reaches the peer in well under one. If you are waiting tens of seconds, suspect the realm rather than your code.
 
 ## 5. Bootstrapping an application into a realm
 
@@ -112,7 +134,7 @@ Four cases follow, and a UI should handle all four:
 
 **Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§3), and on restart do not blindly re-declare (§7 gotcha 2).
 
-**Gate 4 — bind.** Declared is not connected. A capability is **bound** once it has at least one connection (`…/<role>/<profile>/connections/<connId>/…`) and **unbound — awaiting broker** while it has none. Unbound is a normal state, not an error: brokerage can take tens of seconds. Show it explicitly, with a short grace period before drawing attention to it, or users will assume the setup they just completed has failed.
+**Gate 4 — bind.** Declared is not connected. A capability is **bound** once it has at least one connection (`…/<role>/<profile>/connections/<connId>/…`) and **unbound — awaiting broker** while it has none. Unbound is a normal state, not an error — a capability with no counterpart yet simply waits. On a healthy realm binding takes about a second, but it is never instantaneous, so show the state explicitly with a short grace period before drawing attention to it. Otherwise users assume the setup they just completed has failed.
 
 ## 6. Working with multiple connections
 
@@ -146,7 +168,7 @@ These are field-verified. Check whether newer SDK releases have fixed them befor
 3. **Don't use `.watch()`** (Node v0.1.6) — it has a null-match crash. Derive state from `client.keys` inside an `update` event handler instead.
 4. **No keepalive, fragile reconnect.** The SDK sends no WebSocket pings and won't retry an unexpected clean close. Long-lived apps should add a ping (~30s) and reconnect logic — and on reconnect, re-attach without re-declaring capabilities (see gotcha 2).
 5. **Python: don't trust `wait_for_open()`** — it can block for the full timeout on realms that never send the message it gates on. Poll `client.stats()['connection'] == 'online'` instead. (Node's `waitForOpen` works — it polls.)
-6. **System ID off-Raspberry-Pi — no supported fix.** The `Client` constructor calls `get_system_id()` immediately. That function reads the Pi device-tree files and otherwise throws `Unable to detect System ID on this platform`, and there is no `systemId` constructor option — so this cannot be solved from application code. It blocks ordinary Linux, macOS, Windows, containers, CI, and Electron development hosts. The working practice today is to patch the SDK at install time (a `postinstall` script substituting a stable UUID, e.g. derived from an environment seed via `uuidv5`) and to re-apply that patch on every `npm install`. A public identity-injection option is the right fix; treat this as an open SDK gap rather than something your application configures away.
+6. **System ID off-Raspberry-Pi — no supported fix.** The `Client` constructor calls `get_system_id()` immediately; it reads the Pi device-tree files and otherwise throws `Unable to detect System ID on this platform`. There is no `systemId` constructor option, so this blocks ordinary Linux, macOS, Windows, containers, CI, and Electron development hosts. **Python:** rebind `arete_sdk.client.get_system_id` before creating a client — two lines, shown in §4. **Node:** the ID is a private field, so the only route is patching the installed SDK at install time (a `postinstall` script substituting a stable UUID, e.g. from an environment seed via `uuidv5`), re-applied on every `npm install`. Either way the ID must be **persisted**, not regenerated. A public identity-injection option is the right fix; treat this as an open SDK gap, not something your application configures away.
 7. **Registration commands must be awaited serially.** Bursting `systems`/`nodes`/`contexts`/`providers`/`consumers` commands without awaiting each response can silently drop declarations. The SDK's own command path awaits correctly — but any hand-rolled wire client must too.
 8. **Electron:** run the SDK only in the main process; expose to renderers via a preload bridge. And never `npm install` an Electron project inside a cloud-synced folder (Drive/iCloud/Dropbox) — native builds break.
 
