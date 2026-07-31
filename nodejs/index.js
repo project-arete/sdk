@@ -176,19 +176,26 @@ export class Client extends Emitter {
    * @param {string} options.protocol The connection protocol (ws or wss).
    * @param {string} options.host The connection host name.
    * @param {string} options.port The connection port number.
+   * @param {string} [options.token] The dashboard bearer token (JWT). Takes precedence over username/password.
    */
   constructor(options = {}) {
     super();
 
     this.#systemId = get_system_id();
 
+    if (!options.protocol || !options.host || !options.port) {
+      throw new Error(
+        'Client requires options.protocol, options.host, and options.port',
+      );
+    }
+
     this.#options = {
-      protocol:
-        options.protocol || (location.protocol === 'https:' ? 'wss:' : 'ws:'),
-      host: options.host || location.hostname,
-      port: options.port || location.port,
-      //      username: options.username || '',
-      //      password: options.password || ''
+      protocol: options.protocol,
+      host: options.host,
+      port: options.port,
+      // username: options.username || '',
+      // password: options.password || ''
+      token: options.token || '',
     };
 
     this.open();
@@ -211,9 +218,17 @@ export class Client extends Emitter {
       const port = this.#options.port;
       //      const username = this.#options.username;
       //      const password = this.#options.password;
+      const token = this.#options.token;
 
       const uri = prot + '//' + host + (port ? ':' + port : '');
-      this.#socket = new WebSocket(uri);
+
+      const wsOptions = {};
+
+      if (token) {
+        wsOptions.headers = { Authorization: 'Bearer ' + token };
+      }
+
+      this.#socket = new WebSocket(uri, wsOptions);
 
       this.#socket.onopen = this.#onopen.bind(this);
       this.#socket.onmessage = this.#onmessage.bind(this);
