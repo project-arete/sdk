@@ -63,6 +63,17 @@ Ontologies and data models — Haystack, Brick, 223P, an API schema, a database 
 
 **Authority attaches to the role, not to the property, and not to the field.** A provider of an observation CP has authority to publish observations. That says nothing about whether it may accept commands. A consumer authorized to observe is not thereby authorized to control. Two roles with unbounded scope is just client/server; the pair only does useful work when each side's authority is bounded and stated.
 
+**Each capability *is* its sourced property set.** Every property in a profile names the role that **sources** it, and the specification defines the two capabilities in exactly those terms: *a Provider Capability is the set of all properties whose source is "provider"; a Consumer Capability is the set of all properties whose source is "consumer".* So naming a property's source is not annotating it — it is deciding which of the two capabilities the property belongs to. The partition is what makes the pair concrete.
+
+Keep the two ideas apart, because one word has been doing both jobs and it has misled readers:
+
+| | What it governs | Where it is decided |
+|---|---|---|
+| **Authority** | Whether you may bind at all, and in what role | Realm and context policy (§3.5) |
+| **Source** | Which of the two capabilities a property belongs to, and therefore which direction its value travels | The profile, per property (§4) |
+
+Source is **not** a permission. It is not access control, and it grants nothing. It is the partition line through the property set.
+
 Three consequences follow, and they drive everything in §3:
 
 1. **The pair determines CP boundaries.** Where authority differs, you need a different CP.
@@ -71,7 +82,22 @@ Three consequences follow, and they drive everything in §3:
 
 ### 2.2 A note on `server` and `client`
 
-The registry encodes write authority with a flag named `server` (§4). The name is historical. **Do not read provider/consumer as client/server.** Client/server carries four decades of request/response connotation — a passive server answering an active client — which is the wrong shape. Provider and consumer are asymmetric in *authority*, not in who speaks first. Either side may write; either side may initiate; both are bound by the same contract.
+The concept above is called **`Source`** in the specification, with values `provider` and `consumer`. The registry encodes the same thing with a flag named `server` (§4). That name is historical — it dates from before it was settled that a property has exactly two possible origins, when the field named *who serves this up* and `server` was one candidate value among several.
+
+**Do not read provider/consumer as client/server.** Client/server carries four decades of request/response connotation — a passive server answering an active client — which is the wrong shape. Provider and consumer are asymmetric in *what each sources*, not in who speaks first. Either side may write its own properties; either side may initiate; both are bound by the same contract.
+
+**Watch for one specific trap.** In a registry record, `server` appears at *two* levels meaning *two different things*:
+
+```json
+{ "name": "padi.light",
+  "server": "A Controller",                ← prose describing the provider ROLE
+  "client": "A Light being controlled",
+  "versions": [{ "properties": [
+      { "name": "sOut", "server": null }   ← the SOURCE flag: provider-sourced
+  ]}]}
+```
+
+Reading a profile top to bottom, you meet `server` as role prose before you meet it as a source flag, and it is easy to carry the first meaning into the second. That is the single most common misreading of a CP, and it is what produces the mistaken idea that properties carry authority.
 
 ### 2.3 Multiplicity is not arity
 
@@ -144,7 +170,7 @@ A bare scalar loses the information a consumer needs to use it safely. For any m
 
 Commands carry their own envelope: `requestId`, `priority`, `duration`, `who`. Responses echo `requestId` and are addressed back to the requester only.
 
-> **The envelope shape is an open decision, and it has a cost.** Property values in the registry are strings, and there is no type system — an envelope is serialised JSON that every consumer must parse and nothing validates. More consequentially, fields *inside* an envelope are invisible to `server` and `propagate`: twenty statuses expressed as twenty properties each get their own write authority and delivery semantics, and the same twenty inside envelopes get none. You would be trading away the flag system that §4 uses to encode the decisions you made here. The `timestamp` is likewise writer-asserted — the namespace carries no timestamps of its own. Adopt the granularity rule unconditionally; decide the representation deliberately.
+> **The envelope shape is an open decision, and it has a cost.** Property values in the registry are strings, and there is no type system — an envelope is serialised JSON that every consumer must parse and nothing validates. More consequentially, fields *inside* an envelope are invisible to `server` and `propagate`: twenty statuses expressed as twenty properties each get their own source and delivery semantics, and the same twenty inside envelopes get none. You would be trading away the flag system that §4 uses to encode the decisions you made here. The `timestamp` is likewise writer-asserted — the namespace carries no timestamps of its own. Adopt the granularity rule unconditionally; decide the representation deliberately.
 
 ### 3.5 Authorization is realm and context level
 
@@ -165,7 +191,7 @@ In this order. The order is the point.
 1. **Name the two parties and the authority each holds.** If you cannot, stop — there is no CP here yet.
 2. **Apply the four tests** (§3.2). Adjust boundaries until they pass.
 3. **Name the CP** at the most general level whose property set is unchanged. Format `usecase.name`, no direction prefixes on property names.
-4. **List properties**, and assign write authority per property (`server` flag).
+4. **List properties, and name each one's source** (`server` flag) — which is to say, decide which of the two capabilities it belongs to (§2.1).
 5. **Decide delivery per property** (`propagate` flag): broadcast to all connections, or addressed to one.
 6. **Decide Mode 1 or Mode 2**, deliberately.
 7. **Define absence and value semantics** (§3.3, §3.4): which properties are optional, what a missing value means, what envelope each value carries.
@@ -185,7 +211,8 @@ GET https://cp.padi.io/profiles/<cp-name>      (Accept: application/json)
 
 Fetch the **raw JSON** — property flags are encoded by *key presence*, and summarized or rendered views lose them:
 
-- `server` present → the **provider** writes this property; absent → the consumer writes it. Properties are named for **purpose**, never with direction prefixes — the `server` flag is the authority on who writes. (On the flag's name, see §2.2.)
+- `server` present → the property is **provider-sourced**; absent → **consumer-sourced**. This is the specification's `Source` field under its historical name (§2.2). Properties are named for **purpose**, never with direction prefixes — the flag, not the name, states the source.
+  **Precisely:** the flag is present *with a null value*. The orchestrator tests `server === null`, so a `server` key carrying any other value would read as consumer-sourced and silently reverse the property's direction. Every profile in the registry emits `null` today; nothing else is safe to assume.
 - `propagate` present → capability-level writes are **broadcast** into all active connections. Absent → not broadcast, but still usable via the **addressed channel**: any declared property can be written directly into one specific connection (`…/connections/<id>/properties/<prop>`), and the orchestrator mirrors it 1:1 to that peer only. Canonical case: a response property addressed back to the requester.
 - `required` present → the property is required.
 
@@ -247,14 +274,16 @@ Four cases follow, and a UI should handle all four:
 
 A capability is not a socket. One declaration can be bound to many peers at once, each connection carrying its own independent view of the properties, and that is the normal case rather than an edge case. This is the part of CNS/CP with no analogue in the protocols you already know, so it is where inherited instincts do the most damage: pub/sub habits produce code that collapses N peers into a single value and quietly discards the thing that mattered.
 
-**Two flags, four behaviours.** `server` decides *who writes* a property; `propagate` decides *whether that write broadcasts*. They are independent, and all four combinations occur in published CPs:
+**Two flags, four behaviours.** `server` states which role **sources** a property; `propagate` states *whether that value broadcasts*. They are independent, and all four combinations occur in published CPs:
 
 | | `propagate` present — **broadcast** to every connection | `propagate` absent — **addressed** to one connection |
 |---|---|---|
-| **`server` present** — provider writes | `padi.light` → `sOut` | `padi.game.beacon` → `granted` |
-| **`server` absent** — consumer writes | `padi.light` → `cState` | `padi.game.beacon` → `feed` |
+| **`server` present** — provider-sourced | `padi.light` → `sOut` | `padi.game.beacon` → `granted` |
+| **`server` absent** — consumer-sourced | `padi.light` → `cState` | `padi.game.beacon` → `feed` |
 
-`propagate` has nothing to do with being a provider. Either role may own writable properties, and either role's writes may broadcast. Read both flags for every property; never infer one from the role. (`padi.test.propagate` exists to demonstrate this — it carries all four combinations in a single profile.)
+`propagate` has nothing to do with being a provider. Either role sources some of the properties, and either role's values may broadcast. Read both flags for every property; never infer one from the role. (`padi.test.propagate` exists to demonstrate this — it carries all four combinations in a single profile.)
+
+**Source is a routing input, not a permission.** When a value changes, the orchestrator looks up the property's source and derives the *opposite* role — provider-sourced values travel to the consumer, consumer-sourced values travel to the provider — and writes it there. If the value came from the side that does not source it, there is no opposite role to compute and propagation simply stops. Nothing is rejected and no error is raised; the value sits on your own key and reaches nobody (SDK companion, gotcha 12).
 
 **Reading: every side can face many.** A consumer bound to three providers receives three values for a provider-written property. A `padi.light` switch bound to three lights is a *provider* receiving three `cState` values. Same problem, either role. Per-connection values live at `…/<role>/<profile>/connections/<connId>/properties/<prop>`, and a connection carries both sides' properties mirrored onto both endpoints.
 
