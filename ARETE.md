@@ -1,10 +1,14 @@
-# ARETE.md — Building applications on CNS/CP with the Arete SDK
+# ARETE.md — Designing and building on CNS/CP
 
-> **What this file is.** A single-file briefing for anyone — human or AI agent — building applications on the CNS/CP architecture using the Arete SDK. Drop it into your project root, or point your coding agent at the canonical copy:
+> **What this file is.** A single-file briefing for anyone — human or AI agent — designing Connection Profiles and building applications on the CNS/CP architecture. Drop it into your project root, or point your coding agent at the canonical copy:
 >
 > `https://raw.githubusercontent.com/project-arete/sdk/main/ARETE.md`
 >
-> Read it fully before writing code. The architecture has a few load-bearing distinctions that, if violated, produce plausible-looking code that is wrong.
+> **This file is architecture and profile design. SDK mechanics live in a companion file** — quickstart, language bindings, browser support and version-specific defects:
+>
+> `https://raw.githubusercontent.com/project-arete/sdk/main/ARETE-SDK.md`
+>
+> Read this one first, and read it fully. **Do not start with the companion.** The most common failure mode is a well-built application standing on a Connection Profile that was never a contract in the first place — and the architecture has a few load-bearing distinctions that, if violated, produce plausible-looking code that is wrong.
 
 ---
 
@@ -20,26 +24,158 @@ Core vocabulary — use these words precisely:
 |---|---|
 | **CNS** | Connectivity Naming System — resolution/naming layer ("DNS for governed connectivity") |
 | **CP** | Connection Profile — a machine-evaluable contract for one interaction pattern |
+| **Provider / Consumer** | The exactly-two asymmetric roles every CP defines. See §2 — this is the load-bearing concept |
+| **Context** | The bounded scope a binding exists in. Establishes *which* thing is being discussed |
+| **Realm** | The bounded governance scope within which policy is declared and authorization decided |
 | **Orchestration** | The "What" — workflow intent, system-level policy (Arete's job) |
 | **Brokerage** | The "Who" — one matching action: consumer ↔ qualified provider via CP evaluation |
-| **Provider / Consumer** | The exactly-two asymmetric roles every CP defines (wire terms: `server` / `client`) |
 | **Mode 1 (in-band)** | Data flows through the CP network — mediated, auditable |
 | **Mode 2 (out-of-band)** | CNS/CP governs the binding, then steps aside; data flows peer-to-peer |
 
 The mode lives **in the CP definition**, not in a config flag. Read it from the CP and handle accordingly.
 
-**Everything is deny-by-default.** Identity, roles, and a matching CP are required before anything binds. Never design an app that opens access and filters later.
+### 1.1 How a binding forms
 
-## 2. Non-negotiables
+A binding is not a persistent configuration you install. It is the outcome of a sequence, and every step can refuse:
 
-1. **Never connect by address.** Connect by declared CP + role + context. A hardcoded endpoint in app logic is the anti-pattern this architecture exists to replace.
-2. **Every capability is a CP** with a canonical name (`cp:usecase.name`), exactly two asymmetric roles, a schema, constraints, context, and a deliberate mode choice. Design the CP before writing handlers.
-3. **Resolve every CP from the registry before use** (Section 3). If it isn't registered, stop — do not invent the profile.
-4. **Conflicting values across multiple connections are app-level semantics, by design.** The mechanism delivers every connection's view faithfully; it never imposes a conflict policy. When one of your capabilities is bound to N peers — and either role can be, see §6 — *your app* decides how to combine what it receives (average, min, max, logical OR, sum…). Do not "fix" this in SDK/orchestrator code — surface disagreement honestly and resolve it in the application.
+**Register** → **Authorize** → **Declare** → **Reconcile** → **Match** → **Bind**
+
+Registration and authorization admit a node to a realm. Declaration states which CPs it can fulfil, in which role, in which context. Reconcile, match and bind are the substrate's work. Nothing in your application code reaches across this sequence — you declare, and you handle what arrives. §5 covers what your application must do at each gate.
+
+### 1.2 The non-negotiables
+
+1. **Never connect by address.** Connect by declared CP + role + context. A hardcoded endpoint in application logic is the anti-pattern this architecture exists to replace.
+2. **Every capability is a CP** with a canonical name, exactly two asymmetric roles, stated authority, and a deliberate mode choice. Design the CP before writing handlers (§3).
+3. **Resolve every CP from the registry before use** (§4). If it isn't registered, stop — do not invent the profile.
+4. **Conflicting values across multiple connections are application semantics, by design.** The mechanism delivers every connection's view faithfully; it never imposes a conflict policy. When one of your capabilities is bound to N peers — and either role can be, see §6 — *your app* decides how to combine what it receives. Do not "fix" this in SDK or orchestrator code.
 5. **Context is first-class.** A binding exists *in* a context; carry it, don't let authority drift across trust domains.
-6. **Assume every action is audited**, especially in Mode 1.
+6. **Deny-by-default, and assume every action is audited.** Identity, roles, and a matching CP are required before anything binds. Never design an app that opens access and filters later.
 
-## 3. The CP registry — `cp.padi.io`
+---
+
+## 2. The role pair — the load-bearing concept
+
+Every CP defines **exactly two asymmetric roles: provider and consumer.** This is not a labelling convention. It is the thing that makes a CP a contract rather than a schema.
+
+### 2.1 Why the pair is what matters
+
+Ontologies and data models — Haystack, Brick, 223P, an API schema, a database — describe **what a thing is**. None of them state **who may do what to whom**. That gap is what a CP closes, and the role pair is how it closes it.
+
+**Authority attaches to the role, not to the property, and not to the field.** A provider of an observation CP has authority to publish observations. That says nothing about whether it may accept commands. A consumer authorized to observe is not thereby authorized to control. Two roles with unbounded scope is just client/server; the pair only does useful work when each side's authority is bounded and stated.
+
+Three consequences follow, and they drive everything in §3:
+
+1. **The pair determines CP boundaries.** Where authority differs, you need a different CP.
+2. **The pair determines authorization.** You grant or withhold a whole role in a context — you never hide fields.
+3. **The pair must exist before the property list.** If you cannot name both parties and what each is entitled to do, you do not yet have a CP to list properties for.
+
+### 2.2 A note on `server` and `client`
+
+The registry encodes write authority with a flag named `server` (§4). The name is historical. **Do not read provider/consumer as client/server.** Client/server carries four decades of request/response connotation — a passive server answering an active client — which is the wrong shape. Provider and consumer are asymmetric in *authority*, not in who speaks first. Either side may write; either side may initiate; both are bound by the same contract.
+
+### 2.3 Multiplicity is not arity
+
+"Many observers" and "many controllers" are common and fully supported. They are many *connections*, each with exactly two roles. Multiplicity never adds a third role to a CP. §6 covers the mechanics.
+
+If you find yourself needing a third party in a single interaction, you have either two CPs or an unmodelled role. See the party-as-property test in §3.2.
+
+---
+
+## 3. Designing a Connection Profile
+
+Design the CP before you write a handler. This is the section most often skipped and most often the cause of rework — published CPs are immutable.
+
+### 3.1 Decomposition: how many CPs, and where to cut
+
+The question every domain hits: given a system with hundreds of possible data points, how many CPs should it have?
+
+**The rule: split where authority differs, not where structure differs.**
+
+Structure — air paths, floors, units, sub-assemblies, org charts — is a modelling fact. It belongs in context and in property names. Authority — who may observe this, who may command that — is a governance fact, and it is the only thing that justifies a CP boundary.
+
+**Stopping condition:** keep splitting until every property in a CP falls under a single authority scope for a single role pair. Then stop.
+
+Apply this together with the "too fine" test below, not before it. On its own the stopping condition pushes toward splitting; the too-fine test pushes back. Neither is correct alone.
+
+### 3.2 Four tests
+
+Apply these to any candidate CP.
+
+**Too coarse.** If granting this CP to a party forces you to grant something you would want to withhold, split it. *Example: bundling fan control into a general operation profile means an application that needs fan authority receives full unit control.*
+
+**Too fine.** If two CPs are always granted together, to the same role pair, under the same authority, merge them. Atomic per-point profiles maximise exact matching at the cost of declaration count and correlation burden; they are appropriate for compiler-backed registries and selective contracts, not as a default.
+
+**Party-as-property.** If a party appears as a *property value* — `who`, `requestedBy`, `assignedTo`, `approvedBy`, `owner` — you have a role you have not modelled. Decide deliberately: either that party is a real role (and needs its own CP with its own authority), or the field is attribution for audit only. Both are legitimate; leaving it undecided is not.
+
+**Naming level.** If you can rename the CP to a more general term without changing a single property, you named it too specifically. *Example: a profile named for rooftop units whose properties are all air-handler-general should be named for air handlers.* Run this test before publication — names are immutable, and an over-specific name fragments the registry permanently.
+
+### 3.3 Absence must be unambiguous
+
+A consumer that receives nothing for a property must be able to tell **why**. There are exactly four causes, and confusing them is a governance failure, not a cosmetic one:
+
+| Cause | Meaning | Resolved by |
+|---|---|---|
+| **Not modelled** | The system has no such concept | The CP is not declared, or the property is not in the profile |
+| **Not implemented** | Modelled in general, absent in this instance | Property not declared by this provider |
+| **Not authorized** | Exists, but this consumer may not see it | The connection does not exist — no binding, nothing delivered |
+| **Not currently valid** | Exists and is authorized, but stale, faulted or unavailable | Per-value `status` |
+
+The first three are answered by **what is declared and bound**. Only the fourth needs a runtime field. This is why authorization is never field hiding: a hidden field is indistinguishable from a broken sensor, and the consumer cannot act correctly on either.
+
+> **Design target, not current behaviour.** Row 2 has no mechanism today. Declaring a capability creates a key for **every** property in the profile, initialised to an empty string — verified live: a `padi.light` provider that writes only `sOut` still publishes `sLabel = ""`. A provider cannot decline to declare one property. So an empty string presently means *not implemented*, *legitimately empty*, and *wiped by the re-declaration defect* (SDK companion, gotcha 2) all at once. Design profiles as though row 2 works, state absence semantics explicitly, and treat the substrate gap as a known limitation.
+
+**An absent property never means zero, false, or off.** State this explicitly in every profile that has optional properties. A null or release value must be represented distinctly so that releasing a command is never confused with commanding `false`.
+
+### 3.4 Value envelopes
+
+A bare scalar loses the information a consumer needs to use it safely. For any measured or sampled value, consider carrying the envelope with the value:
+
+```json
+{
+  "value": 56.4,
+  "kind": "Number",
+  "unit": "°F",
+  "status": "ok",
+  "timestamp": "2026-08-01T08:51:00-04:00"
+}
+```
+
+**Envelope granularity must match payload granularity.** One `status` field covering a profile that carries twenty values cannot tell a consumer which of the twenty is faulted. If a CP carries N independently-sourced values, it needs N statuses. This is the most common defect in first-draft profiles, and the principle holds regardless of how you represent the envelope.
+
+Commands carry their own envelope: `requestId`, `priority`, `duration`, `who`. Responses echo `requestId` and are addressed back to the requester only.
+
+> **The envelope shape is an open decision, and it has a cost.** Property values in the registry are strings, and there is no type system — an envelope is serialised JSON that every consumer must parse and nothing validates. More consequentially, fields *inside* an envelope are invisible to `server` and `propagate`: twenty statuses expressed as twenty properties each get their own write authority and delivery semantics, and the same twenty inside envelopes get none. You would be trading away the flag system that §4 uses to encode the decisions you made here. The `timestamp` is likewise writer-asserted — the namespace carries no timestamps of its own. Adopt the granularity rule unconditionally; decide the representation deliberately.
+
+### 3.5 Authorization is realm and context level
+
+Authorization is decided in the realm, and applies to a role in a context. A party either receives a binding or does not.
+
+**Never filter fields to implement permission.** If a consumer should not see something, it should not be bound to a CP that carries it — which is what §3.1's decomposition rule exists to make possible. Field filtering reintroduces exactly the ambiguity §3.3 eliminates, and moves policy enforcement into the payload where it cannot be governed.
+
+Addressed delivery controls *destination*, not confidentiality. It is not an access control — see §6.
+
+### 3.6 Conflicting values are application semantics
+
+Where a domain has its own arbitration — a control priority scheme, an approval chain — the CP's job is to make arbitration **observable**: carry `priority`, `who`, `requestId`, and publish the effective winning state. The CP does not perform the arbitration. §6 covers the mechanics and the aggregation choices available to you.
+
+### 3.7 Authoring checklist
+
+In this order. The order is the point.
+
+1. **Name the two parties and the authority each holds.** If you cannot, stop — there is no CP here yet.
+2. **Apply the four tests** (§3.2). Adjust boundaries until they pass.
+3. **Name the CP** at the most general level whose property set is unchanged. Format `usecase.name`, no direction prefixes on property names.
+4. **List properties**, and assign write authority per property (`server` flag).
+5. **Decide delivery per property** (`propagate` flag): broadcast to all connections, or addressed to one.
+6. **Decide Mode 1 or Mode 2**, deliberately.
+7. **Define absence and value semantics** (§3.3, §3.4): which properties are optional, what a missing value means, what envelope each value carries.
+8. **Register in `padi.test.*`** and iterate there. Published CPs are immutable.
+9. **Plan multi-connection semantics in the app** (§6) — expect either role to face N peers.
+10. **Then** write the handlers.
+
+---
+
+## 4. The CP registry — `cp.padi.io`
 
 Before declaring a provider or consumer for any CP, fetch its definition:
 
@@ -47,88 +183,27 @@ Before declaring a provider or consumer for any CP, fetch its definition:
 GET https://cp.padi.io/profiles/<cp-name>      (Accept: application/json)
 ```
 
-Fetch the **raw JSON** — property flags are encoded by *key presence*, and summarized/rendered views lose them:
+Fetch the **raw JSON** — property flags are encoded by *key presence*, and summarized or rendered views lose them:
 
-- `server` present → the **provider** writes this property; absent → the consumer writes it. Properties are named for **purpose**, never with direction prefixes — the `server` flag is the authority on who writes.
+- `server` present → the **provider** writes this property; absent → the consumer writes it. Properties are named for **purpose**, never with direction prefixes — the `server` flag is the authority on who writes. (On the flag's name, see §2.2.)
 - `propagate` present → capability-level writes are **broadcast** into all active connections. Absent → not broadcast, but still usable via the **addressed channel**: any declared property can be written directly into one specific connection (`…/connections/<id>/properties/<prop>`), and the orchestrator mirrors it 1:1 to that peer only. Canonical case: a response property addressed back to the requester.
 - `required` present → the property is required.
 
-Registry governance: published CPs are **immutable** — design deliberately before publishing. The `versions` array takes **additive** changes only; a functional change means a **new CP name**. Use the `padi.test.*` namespace for development CPs. Unregistered ("local") profile names will not bind on a live realm — the control plane can't produce matchable version keys for a profile it can't resolve.
+These flags are the **encoding** of decisions you made in §3 — they are not the decisions themselves. A profile whose `server` flags are correct but whose role pair was never stated is not a contract.
 
-## 4. SDK quickstart
+Registry governance: published CPs are **immutable** — design deliberately before publishing. Use the `padi.test.*` namespace for development CPs. Unregistered ("local") profile names will not bind on a live realm — the control plane can't produce matchable version keys for a profile it can't resolve.
 
-Repo: **https://github.com/project-arete/sdk** — bindings for Node (`nodejs/`), Python (`python/`), Rust (`rust/`). The repo is authoritative for exact API names; this file is authoritative for architecture and conventions.
+**What counts as a functional change** (new CP name required): altering the role pair or either side's authority; changing which side writes an existing property; changing a property's meaning, unit or value domain; making an optional property required; removing a property. **Additive** (same CP, new version): adding an optional property; adding an enum member that does not change existing members' meaning; clarifying documentation.
 
-> **Read this before your first line of code.** The `Client` constructor derives a system ID from Raspberry Pi hardware and throws `Unable to detect System ID on this platform` everywhere else. There is no constructor option for it (§7 gotcha 6). **On Python you can work around it in two lines and it works today. On Node you cannot** — the ID is a private field set in the constructor, so off-Pi Node requires patching the installed SDK at install time. If you are starting out and not on a Pi, **start with Python.**
+> **The additive path is currently unreachable.** Verified live: no API accepts a version — neither the SDK nor a browser client — and the control plane assigns version `1`. A profile with a published second version was assigned v1 on a fresh declaration, so a v2 cannot presently be declared or bound. Treat the rules above as the intended governance model, and check before relying on a new version reaching anyone. The distinction between a new *name* and a new *version* also extends beyond what the specification currently states, and is pending reconciliation.
 
-The identity chain is the same in every binding, and IDs must stay **stable across restarts**:
-
-```
-Client → system() → node(id, name, upstream) → context(id, name)
-       → provider(profile) | consumer(profile)     // .get / .put on properties
-```
-
-**Node** (`npm install arete-sdk`, ESM only) — off a Raspberry Pi this needs the SDK patched first, see above:
-
-```javascript
-import { Client } from 'arete-sdk';
-
-// Always pass protocol/host/port explicitly: the constructor otherwise falls
-// back to browser `location` globals, which do not exist under Node.
-const client = new Client({ protocol: 'wss:', host: 'test.aretehosting.com', port: 443 });
-await client.waitForOpen(5000);
-
-// Every step of the chain returns a Promise — await all four.
-const system = await client.system();                    // cache this — see §7 gotcha 1
-const node   = await system.node(nodeId, 'My App', false);
-const ctx    = await node.context(ctxId, 'My Context');
-const cap    = await ctx.provider('padi.light');         // or ctx.consumer(...)
-```
-
-Client emits `open` / `update` / `close` / `error`. `client.get(key, def)` reads the local key cache; `client.put(key, value)` is a raw key write (used for addressed per-connection writes).
-
-**Python** (`pip install "arete-sdk @ git+https://github.com/project-arete/sdk.git#subdirectory=python"`, plus `websockets>=13,<16`; needs Python 3.11+). The identity chain is the same, but **construction is not** — the client is created by a `connect` classmethod, not by calling `Client(...)`. The API is synchronous and runs a daemon receiver thread.
-
-```python
-import time
-import arete_sdk.client as ac
-
-# Off a Raspberry Pi, substitute a stable system ID before creating a client.
-# Persist this value — it must not change between restarts.
-ac.get_system_id = lambda: 'a7c1e2d4-5b6f-4a80-9c31-2e8f0d5b7a44'
-
-client = ac.Client.connect('wss://test.aretehosting.com:443')
-while (client.stats() or {}).get('connection') != 'online':   # see §7 gotcha 5
-    time.sleep(0.25)
-
-system = client.system()
-node = system.node(node_id, 'My App', False)
-ctx = node.context(ctx_id, 'My Context')
-cap = ctx.consumer('padi.light')                              # or ctx.provider(...)
-```
-
-**Browser and PWA — the SDK does not run in a browser.** It imports `fs`, `os`, and `ws`, and derives identity from Pi hardware. Do not bundle it for the web. The working pattern is a small browser client speaking the same wire protocol — a `WebSocket`, the same key cache, and `command()` / `put()`. Project Arete's own PWAs are built this way (`browser-arete.js` in [arete-monitor-pwa](https://github.com/project-arete/arete-monitor-pwa), the widget PWA bridge, and [Firefly Island](https://github.com/project-arete/firefly-island)); copy one rather than inventing another.
-
-Browser identity is where this fails, and it fails *silently*:
-
-- Generate the system ID **once per app installation** — `crypto.randomUUID()` — and persist it before connecting. Node and context IDs likewise (22-character base62).
-- Persist it under a **storage key unique to that app** (`arete-monitor-identity`, `arete-widget-system`, …). Two apps sharing one fallback register as **the same system on the realm** — which presents as a brokerage fault and is not one.
-- Never derive the system ID from the user-facing system name, and never ship a shared hard-coded fallback.
-- Issue `systems`, `nodes`, `contexts` **one at a time, awaiting each** (§7 gotcha 7).
-
-Browsers cannot set WebSocket headers, so when bearer tokens arrive they will not reach a browser client by the route Node uses.
-
-**Auth (SDK 0.1.6 — unsettled; expect this to change).** The `Client` constructor accepts only `protocol`, `host`, and `port`. Its `username`/`password` options exist in the source but are commented out, and the connection URI is assembled from those three values alone. The only way to pass credentials today is to fold them into the `host` string as URL userinfo — `host: 'user:pass@realm.example.com'`, URL-encoded — which is a workaround rather than a supported interface, and one that puts secrets somewhere they leak into logs and error reports. Realm-issued bearer tokens are being added; until they land, treat authentication as an open question and keep credentials out of anything you commit. Open realms, including the sandbox below, accept unauthenticated connections — and a realm that requires no token is public by definition (§6).
-
-**A realm to point at.** `wss://test.aretehosting.com:443` is a shared sandbox that accepts anonymous connections — fine for first experiments, but it is shared, so treat anything you put there as public and disposable. For anything beyond a first try, create your own realm at [aretehosting.com](https://aretehosting.com): it takes a couple of minutes, it is free at the time of writing, and nobody else's experiments are in it.
-
-On a healthy realm brokerage is fast — a provider and consumer declared in the same context bind in about a second, and a broadcast write reaches the peer in well under one. If you are waiting tens of seconds, suspect the realm rather than your code.
+---
 
 ## 5. Bootstrapping an application into a realm
 
 Declaring a capability is not the first thing an application does — it is the third. Every app crosses the same gates in the same order, each a precondition for the next. User-facing apps should surface them in this order rather than bury them in a config file: a user who cannot get past gate 2 otherwise has no way to understand why nothing is happening.
 
-**Gate 1 — realm and identity.** Collect the realm address and credentials, then register a system and a node. You supply the IDs, and they **must be stable across restarts** — persist them; never generate them at startup. The SDK names the system after `os.hostname()` unless you rename it (§7 gotcha 1), so let the user set the name it will carry on the realm.
+**Gate 1 — realm and identity.** Collect the realm address and credentials, then register a system and a node. You supply the IDs, and they **must be stable across restarts** — persist them; never generate them at startup. The SDK names the system after the local hostname unless you rename it (SDK companion, gotcha 1), so let the user set the name it will carry on the realm.
 
 Six identifiers, and they are not interchangeable:
 
@@ -160,11 +235,13 @@ Four cases follow, and a UI should handle all four:
 
 **The context ID is what matches; the name is only a label.** Binding happens within a context ID, and different systems routinely name the same context differently — realm-wide views group by ID and display the most common name variant. Hence the trap: two users who both choose *create* and both type "Kitchen" get two different IDs and will never bind, while the UI shows what looks like a match. Defaulting to *join* is what prevents this, which makes it load-bearing rather than a convenience.
 
-**Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§3), and on restart do not blindly re-declare (§7 gotcha 2).
+**Gate 3 — declaration.** Declare provider or consumer for each CP the app implements, in the chosen context. Resolve every profile from the registry first (§4), and on restart do not blindly re-declare (SDK companion, gotcha 2).
 
 **Creating a context is not declaring a capability.** Registering a context makes it exist; nothing can match it until you also declare your role there. A UI that says "created" at gate 2 invites the user to expect an immediate connection and then look for the fault. Show it as *created, not yet published*, and do not count it as compatible — yours or anyone else's — until the declaration has landed.
 
 **Gate 4 — bind.** Declared is not connected. A capability is **bound** once it has at least one connection (`…/<role>/<profile>/connections/<connId>/…`) and **unbound — awaiting broker** while it has none. Unbound is a normal state, not an error — a capability with no counterpart yet simply waits. On a healthy realm binding takes about a second, but it is never instantaneous, so show the state explicitly with a short grace period before drawing attention to it. Otherwise users assume the setup they just completed has failed.
+
+---
 
 ## 6. Working with multiple connections
 
@@ -181,7 +258,7 @@ A capability is not a socket. One declaration can be bound to many peers at once
 
 **Reading: every side can face many.** A consumer bound to three providers receives three values for a provider-written property. A `padi.light` switch bound to three lights is a *provider* receiving three `cState` values. Same problem, either role. Per-connection values live at `…/<role>/<profile>/connections/<connId>/properties/<prop>`, and a connection carries both sides' properties mirrored onto both endpoints.
 
-The mechanism will never resolve disagreement for you (§2 rule 4) — it delivers each connection's view faithfully and stops there. Choices taken by working applications: **average, minimum, or maximum** where values are numeric and a summary is meaningful; a **logical OR** where any peer asserting is sufficient, so a light stays lit while anyone is still holding it and tug-of-war is legal by design; a **sum** where contributions accumulate. Choose deliberately and write the choice down, because it *is* your application's semantics.
+The mechanism will never resolve disagreement for you (§1.2 rule 4) — it delivers each connection's view faithfully and stops there. Choices taken by working applications: **average, minimum, or maximum** where values are numeric and a summary is meaningful; a **logical OR** where any peer asserting is sufficient, so a light stays lit while anyone is still holding it and tug-of-war is legal by design; a **sum** where contributions accumulate. Choose deliberately and write the choice down, because it *is* your application's semantics.
 
 **Writing: broadcast or address.** Writing to the capability property broadcasts to every connection — for a property flagged `propagate`. Writing to `…/connections/<connId>/properties/<prop>` reaches exactly one peer, which is how a response is returned to whoever asked. Both are available to whichever role owns the property.
 
@@ -189,33 +266,28 @@ The mechanism will never resolve disagreement for you (§2 rule 4) — it delive
 
 **Visibility is realm-governed.** Addressed means *delivered to one peer*. It does not mean *hidden from others*: an addressed write lands in a key like any other, and who may read that key is decided by the realm. A realm requiring no token is public. With tokens, the default is privacy within the realm, and a context may carry its own token so it can be protected individually. Treat addressing as delivery, never as confidentiality — let the realm's policy, not a property flag, tell you who can see a value.
 
-## 7. Known gotchas (as of SDK v0.1.6, verified live July 2026)
+---
 
-These are field-verified. Check whether newer SDK releases have fixed them before working around.
+## 7. Anti-patterns
 
-1. **`client.system()` overwrites your system name.** Every call re-registers the system under the local hostname (`os.hostname()`, `socket.gethostname()`) — verified live: a system you renamed reverts as soon as `system()` is called again. Cache the System instance instead of re-fetching it, and re-issue your chosen name after anything that re-registers.
-2. **Capability re-declaration wipes values.** Re-issuing a `providers`/`consumers` declaration for an *existing* capability resets all its property values to empty strings — and the empties propagate into every connection. On startup/reconnect, check whether `…/<role>/<profile>/version` already exists in the key cache; if so, **skip the declaration** and operate on the existing key paths. (Values persist on the realm across disconnects — "values gone after restart" is almost always this bug, not realm data loss.)
-3. **Don't use `.watch()`** (Node v0.1.6) — it has a null-match crash. Derive state from `client.keys` inside an `update` event handler instead.
-4. **No keepalive, fragile reconnect.** The SDK sends no WebSocket pings and won't retry an unexpected clean close. Long-lived apps should add a ping (~30s) and reconnect logic — and on reconnect, re-attach without re-declaring capabilities (see gotcha 2).
-5. **Python: don't trust `wait_for_open()`** — it can block for the full timeout on realms that never send the message it gates on. Poll `client.stats()['connection'] == 'online'` instead. (Node's `waitForOpen` works — it polls.)
-6. **System ID off-Raspberry-Pi — no supported fix.** The `Client` constructor calls `get_system_id()` immediately; it reads the Pi device-tree files and otherwise throws `Unable to detect System ID on this platform`. There is no `systemId` constructor option, so this blocks ordinary Linux, macOS, Windows, containers, CI, and Electron development hosts. **Python:** rebind `arete_sdk.client.get_system_id` before creating a client — two lines, shown in §4. **Node:** the ID is a private field, so the only route is patching the installed SDK at install time (a `postinstall` script substituting a stable UUID, e.g. from an environment seed via `uuidv5`), re-applied on every `npm install`. Either way the ID must be **persisted**, not regenerated. A public identity-injection option is the right fix; treat this as an open SDK gap, not something your application configures away.
-7. **Registration commands must be awaited serially.** Bursting `systems`/`nodes`/`contexts`/`providers`/`consumers` commands without awaiting each response can silently drop declarations. The SDK's own command path awaits correctly — but any hand-rolled wire client must too.
-8. **Electron:** run the SDK only in the main process; expose to renderers via a preload bridge. And never `npm install` an Electron project inside a cloud-synced folder (Drive/iCloud/Dropbox) — native builds break.
-9. **Registration calls are upserts — they overwrite names.** `system.node(id, name)` and `node.context(id, name)` are writes, not read-only attaches: each one sets the name you pass. Verified live — re-registering a context under a different name replaces the one the user chose. There is no attach-without-mutating call, so on reconnect either pass exactly the name you want kept, or don't re-register at all and work from the existing key paths.
+If you are doing any of these, go back to §2.
 
-## 8. Designing a new capability — checklist
+- **Connecting by address.** A hardcoded endpoint in application logic is the anti-pattern this architecture exists to replace.
+- **A profile that is a point list.** Properties with no stated role pair and no authority scope is a schema wearing a contract's name.
+- **Field filtering for permission.** See §3.5.
+- **Decomposing by structure.** One CP per air path, per floor, per sub-assembly — where the authority is identical across all of them. See §3.1.
+- **Inventing a profile.** If it isn't in the registry, stop. Register it in `padi.test.*` first.
+- **Resolving conflicts in the substrate.** See §3.6 and §6.
+- **Collapsing N connections into one value.** The substrate knows which peer contributed what; discarding that is a rendering choice, and usually the wrong one. See §6.
+- **Deferring the role pair.** "We'll decide who provides and who consumes later" means the contract does not exist yet. Properties cannot be designed against an undecided pair.
 
-1. What is the CP? Name it `usecase.name`, no direction prefixes on properties.
-2. Define the two roles and which side writes each property (`server` flag).
-3. Decide broadcast vs addressed per property (`propagate` flag) and Mode 1 vs Mode 2 — deliberately.
-4. Register in `padi.test.*` first; iterate there (published CPs are immutable).
-5. Plan multi-connection semantics **in the app** (aggregation, conflict display) — expect a consumer to face N providers.
-6. Then, and only then, write the handlers.
+---
 
-## 9. References
+## 8. References
 
 | Resource | URL |
 |---|---|
+| **SDK mechanics companion** | https://raw.githubusercontent.com/project-arete/sdk/main/ARETE-SDK.md |
 | Arete SDK (Node, Python, Rust) | https://github.com/project-arete/sdk |
 | Project Arete GitHub org | https://github.com/project-arete |
 | Project Arete website | https://projectarete.io |
