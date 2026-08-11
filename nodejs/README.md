@@ -22,6 +22,7 @@ let client = new Client({
   protocol: 'wss:',
   host: 'dashboard.test.cns.dev',
   port: 443,
+  token: 'TOKEN-FROM-ARETE-HOSTING',
 });
 await client.waitForOpen(5000);
 ...
