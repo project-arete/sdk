@@ -29,10 +29,19 @@ Core vocabulary — use these words precisely:
 | **Realm** | The bounded governance scope within which policy is declared and authorization decided |
 | **Orchestration** | The "What" — workflow intent, system-level policy (Arete's job) |
 | **Brokerage** | The "Who" — one matching action: consumer ↔ qualified provider via CP evaluation |
-| **Mode 1 (in-band)** | Data flows through the CP network — mediated, auditable |
-| **Mode 2 (out-of-band)** | CNS/CP governs the binding, then steps aside; data flows peer-to-peer |
+| **Conveyance** | The Realm's carriage of what a Connection holds. Everything a Connection carries passes through the Realm |
 
-The mode lives **in the CP definition**, not in a config flag. Read it from the CP and handle accordingly.
+**Everything that passes through a Connection passes through the Realm.** Two
+systems exchanging data by any other means have not made a Connection, and
+CNS/CP claims nothing about what they are doing. A system that speaks another
+protocol on its far side — BACnet, Modbus, HTTP, MQTT — is a Node with two
+faces, not a bypass.
+
+> **Retracted 3 September 2026 (D36).** This table previously defined **Mode 1
+> (in-band)** and **Mode 2 (out-of-band)** and told you to read the mode from
+> the CP. That distinction is withdrawn: no CP ever carried a mode field, no SDK
+> implemented Mode 2, and it is no longer a design choice. Treat the Mode 1 /
+> Mode 2 vocabulary in older material as superseded by the paragraph above.
 
 ### 1.1 How a binding forms
 
@@ -193,7 +202,7 @@ In this order. The order is the point.
 3. **Name the CP** at the most general level whose property set is unchanged. Format `usecase.name`, no direction prefixes on property names.
 4. **List properties, and name each one's source** (`server` flag) — which is to say, decide which of the two capabilities it belongs to (§2.1).
 5. **Decide delivery per property** (`propagate` flag): broadcast to all connections, or addressed to one.
-6. **Decide Mode 1 or Mode 2**, deliberately.
+6. **Check nothing here needs a byte or message stream.** There is no Mode 1 / Mode 2 decision to make — everything a Connection carries goes through the Realm (§1). If the use case genuinely needs a stream rather than current-state properties, the CP is blocked on **Channels** (in drafting) — flag it, and do not reach for a peer-to-peer path.
 7. **Define absence and value semantics** (§3.3, §3.4): which properties are optional, what a missing value means, what envelope each value carries.
 8. **Register in `padi.test.*`** and iterate there. Published CPs are immutable.
 9. **Plan multi-connection semantics in the app** (§6) — expect either role to face N peers.
