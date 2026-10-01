@@ -89,24 +89,25 @@ Three consequences follow, and they drive everything in §3:
 2. **The pair determines authorization.** You grant or withhold a whole role in a context — you never hide fields.
 3. **The pair must exist before the property list.** If you cannot name both parties and what each is entitled to do, you do not yet have a CP to list properties for.
 
-### 2.2 A note on `server` and `client`
+### 2.2 A note on `Provider` and `Consumer`
 
-The concept above is called **`Source`** in the specification, with values `provider` and `consumer`. The registry encodes the same thing with a flag named `server` (§4). That name is historical — it dates from before it was settled that a property has exactly two possible origins, when the field named *who serves this up* and `server` was one candidate value among several.
+The concept above is called **`Source`** in the specification, with values `provider` and `consumer`. In a registry record it is carried by *which list a property sits in*: `Properties.Provider` holds the properties the provider supplies, and `Properties.Consumer` those the consumer supplies (§4). The 2022 registry encoded the same thing with a flag named `server`; that name was historical, and that representation is retired.
 
 **Do not read provider/consumer as client/server.** Client/server carries four decades of request/response connotation — a passive server answering an active client — which is the wrong shape. Provider and consumer are asymmetric in *what each sources*, not in who speaks first. Either side may write its own properties; either side may initiate; both are bound by the same contract.
 
-**Watch for one specific trap.** In a registry record, `server` appears at *two* levels meaning *two different things*:
+**Watch for one specific trap.** In a registry record, `Provider` and `Consumer` appear at *two* levels meaning *two different things*:
 
 ```json
-{ "name": "padi.light",
-  "server": "A Controller",                ← prose describing the provider ROLE
-  "client": "A Light being controlled",
-  "versions": [{ "properties": [
-      { "name": "sOut", "server": null }   ← the SOURCE flag: provider-sourced
-  ]}]}
+{ "Header": {
+    "Name": "padi.lighting", "Version": "2",
+    "Provider": "Controller",              ← prose describing the provider ROLE
+    "Consumer": "Luminaire" },
+  "Properties": {
+    "Provider": [ { "Name": "level", ... } ],   ← the SOURCE: provider-sourced
+    "Consumer": [ { "Name": "actual", ... } ] } }
 ```
 
-Reading a profile top to bottom, you meet `server` as role prose before you meet it as a source flag, and it is easy to carry the first meaning into the second. That is the single most common misreading of a CP, and it is what produces the mistaken idea that properties carry authority.
+Reading a profile top to bottom, you meet `Provider` as role prose before you meet it as a source list, and it is easy to carry the first meaning into the second. That is the single most common misreading of a CP, and it is what produces the mistaken idea that properties carry authority.
 
 ### 2.3 Multiplicity is not arity
 
@@ -179,7 +180,7 @@ A bare scalar loses the information a consumer needs to use it safely. For any m
 
 Commands carry their own envelope: `requestId`, `priority`, `duration`, `who`. Responses echo `requestId` and are addressed back to the requester only.
 
-> **The envelope shape is an open decision, and it has a cost.** Property values in the registry are strings, and there is no type system — an envelope is serialised JSON that every consumer must parse and nothing validates. More consequentially, fields *inside* an envelope are invisible to `server` and `propagate`: twenty statuses expressed as twenty properties each get their own source and delivery semantics, and the same twenty inside envelopes get none. You would be trading away the flag system that §4 uses to encode the decisions you made here. The `timestamp` is likewise writer-asserted — the namespace carries no timestamps of its own. Adopt the granularity rule unconditionally; decide the representation deliberately.
+> **The envelope shape is an open decision, and it has a cost.** Property values in the registry are strings, and there is no type system — an envelope is serialised JSON that every consumer must parse and nothing validates. More consequentially, fields *inside* an envelope are invisible to a property's source and to `Propagate`: twenty statuses expressed as twenty properties each get their own source and delivery semantics, and the same twenty inside envelopes get none. You would be trading away the flag system that §4 uses to encode the decisions you made here. The `timestamp` is likewise writer-asserted — the namespace carries no timestamps of its own. Adopt the granularity rule unconditionally; decide the representation deliberately.
 
 ### 3.5 Authorization is realm and context level
 
@@ -200,8 +201,8 @@ In this order. The order is the point.
 1. **Name the two parties and the authority each holds.** If you cannot, stop — there is no CP here yet.
 2. **Apply the four tests** (§3.2). Adjust boundaries until they pass.
 3. **Name the CP** at the most general level whose property set is unchanged. Format `usecase.name`, no direction prefixes on property names.
-4. **List properties, and name each one's source** (`server` flag) — which is to say, decide which of the two capabilities it belongs to (§2.1).
-5. **Decide delivery per property** (`propagate` flag): broadcast to all connections, or addressed to one.
+4. **List properties, and name each one's source** (which list it goes in, `Provider` or `Consumer`) — which is to say, decide which of the two capabilities it belongs to (§2.1).
+5. **Decide delivery per property** (`Propagate`, yes or no): may it be broadcast to all connections, or is it addressed to one.
 6. **Check nothing here needs a byte or message stream.** There is no Mode 1 / Mode 2 decision to make — everything a Connection carries goes through the Realm (§1). If the use case genuinely needs a stream rather than current-state properties, the CP is blocked on **Channels** (in drafting) — flag it, and do not reach for a peer-to-peer path.
 7. **Define absence and value semantics** (§3.3, §3.4): which properties are optional, what a missing value means, what envelope each value carries.
 8. **Register in `padi.test.*`** and iterate there. Published CPs are immutable.
@@ -210,28 +211,30 @@ In this order. The order is the point.
 
 ---
 
-## 4. The CP registry — `cp.padi.io`
+## 4. The CP registry — `cp.cnscp.io`
 
-Before declaring a provider or consumer for any CP, fetch its definition:
+Before declaring a provider or consumer for any CP, fetch its definition. A published version is addressed as `name:version` and is fetched with a plain GET, with no `Accept` header:
 
 ```
-GET https://cp.padi.io/profiles/<cp-name>      (Accept: application/json)
+GET https://cp.cnscp.io/<name>:<version>        e.g. https://cp.cnscp.io/padi.lighting:2
 ```
 
-Fetch the **raw JSON** — property flags are encoded by *key presence*, and summarized or rendered views lose them:
+The answer is `application/cp+json; profile="2026"`: a `Header` and a `Properties` object holding a `Provider` list and a `Consumer` list. Each Property carries `Name`, `Mandatory` and `Propagate` (the strings `"yes"` / `"no"`), and may carry `Default`, `Description` and `Sample`. A bare name (`/padi.lighting`) returns a selection page listing the versions, each with its `href`; it is not a Profile. Do not send `Accept: application/json`: that returns the retired 2022 shape, which is deprecated and sunsets on 31 December 2026.
 
-- `server` present → the property is **provider-sourced**; absent → **consumer-sourced**. This is the specification's `Source` field under its historical name (§2.2). Properties are named for **purpose**, never with direction prefixes — the flag, not the name, states the source.
-  **Precisely:** the flag is present *with a null value*. The orchestrator tests `server === null`, so a `server` key carrying any other value would read as consumer-sourced and silently reverse the property's direction. Every profile in the registry emits `null` today; nothing else is safe to assume.
-- `propagate` present → capability-level writes are **broadcast** into all active connections. Absent → not broadcast, but still usable via the **addressed channel**: any declared property can be written directly into one specific connection (`…/connections/<id>/properties/<prop>`), and the orchestrator mirrors it 1:1 to that peer only. Canonical case: a response property addressed back to the requester.
-- `required` present → the property is required.
+Read the structure, not a rendering of it:
 
-These flags are the **encoding** of decisions you made in §3 — they are not the decisions themselves. A profile whose `server` flags are correct but whose role pair was never stated is not a contract.
+- Which list a Property sits in (`Provider` or `Consumer`) is its **source**: that role supplies the value (specification §6.4). Properties are named for **purpose**, never with direction prefixes — the list, not the name, states the source.
+- `Propagate: "yes"` means the Property may be written at the capability, and the value reaches **every** connection the capability holds (broadcast). `"no"` means it can be written only at one connection, and the value reaches that connection and no other (**addressed**): any declared property can be written directly into one specific connection (`…/connections/<id>/properties/<prop>`), and the orchestrator mirrors it 1:1 to that peer only. Canonical case: a response property addressed back to the requester. Propagate concerns where a value may be written, not who may read it (§6, "Visibility is realm-governed"), and it is independent of role: all four combinations of source and flag are valid.
+- `Mandatory: "yes"` means the Property is required.
 
-Registry governance: published CPs are **immutable** — design deliberately before publishing. Use the `padi.test.*` namespace for development CPs. Unregistered ("local") profile names will not bind on a live realm — the control plane can't produce matchable version keys for a profile it can't resolve.
+These flags are the **encoding** of decisions you made in §3 — they are not the decisions themselves. A profile whose lists are right but whose role pair was never stated is not a contract.
+
+Registry governance: every Profile is registered under an organization's Top Level Prefix (Arete's own is `cp:arete`; Padi's is `padi`). A published version is **immutable** and is the only thing the Registry serves — of an unpublished name it holds the name and its registration date alone, and never serves a draft's content (specification §7.3). A Deprecated version stays published and resolvable, but no new Connection forms at it. A realm binds only published Profiles unless its published rules say otherwise (§6.3), so design deliberately before publishing. Use the `padi.test.*` namespace for development CPs. Unregistered ("local") profile names will not bind on a live realm — the control plane can't produce matchable version keys for a profile it can't resolve.
+
+The specification is at https://github.com/CNSCP/specification/blob/main/cnscp-2026-specification.md.
 
 **What counts as a functional change** (new CP name required): altering the role pair or either side's authority; changing which side writes an existing property; changing a property's meaning, unit or value domain; making an optional property required; removing a property. **Additive** (same CP, new version): adding an optional property; adding an enum member that does not change existing members' meaning; clarifying documentation.
 
-> **The additive path is currently unreachable.** Verified live: no API accepts a version — neither the SDK nor a browser client — and the control plane assigns version `1`. A profile with a published second version was assigned v1 on a fresh declaration, so a v2 cannot presently be declared or bound. Treat the rules above as the intended governance model, and check before relying on a new version reaching anyone. The distinction between a new *name* and a new *version* also extends beyond what the specification currently states, and is pending reconciliation.
 
 ---
 
@@ -283,14 +286,14 @@ Four cases follow, and a UI should handle all four:
 
 A capability is not a socket. One declaration can be bound to many peers at once, each connection carrying its own independent view of the properties, and that is the normal case rather than an edge case. This is the part of CNS/CP with no analogue in the protocols you already know, so it is where inherited instincts do the most damage: pub/sub habits produce code that collapses N peers into a single value and quietly discards the thing that mattered.
 
-**Two flags, four behaviours.** `server` states which role **sources** a property; `propagate` states *whether that value broadcasts*. They are independent, and all four combinations occur in published CPs:
+**Two properties of a property, four behaviours.** Its list (`Provider` or `Consumer`) states which role **sources** it; `Propagate` states *whether that value may be written at the capability and so broadcast*. They are independent, and all four combinations occur in published CPs:
 
-| | `propagate` present — **broadcast** to every connection | `propagate` absent — **addressed** to one connection |
+| | `Propagate: yes` — **broadcast** to every connection | `Propagate: no` — **addressed** to one connection |
 |---|---|---|
-| **`server` present** — provider-sourced | `padi.light` → `sOut` | `padi.game.beacon` → `granted` |
-| **`server` absent** — consumer-sourced | `padi.light` → `cState` | `padi.game.beacon` → `feed` |
+| **`Provider` list** — provider-sourced | `padi.light` → `sOut` | `padi.game.beacon` → `granted` |
+| **`Consumer` list** — consumer-sourced | `padi.light` → `cState` | `padi.game.beacon` → `feed` |
 
-`propagate` has nothing to do with being a provider. Either role sources some of the properties, and either role's values may broadcast. Read both flags for every property; never infer one from the role. (`padi.test.propagate` exists to demonstrate this — it carries all four combinations in a single profile.)
+`Propagate` has nothing to do with being a provider. Either role sources some of the properties, and either role's values may broadcast. Read both for every property; never infer one from the role. (`padi.test.propagate` exists to demonstrate this — it carries all four combinations in a single profile.)
 
 **Source is a routing input, not a permission.** When a value changes, the orchestrator looks up the property's source and derives the *opposite* role — provider-sourced values travel to the consumer, consumer-sourced values travel to the provider — and writes it there. If the value came from the side that does not source it, there is no opposite role to compute and propagation simply stops. Nothing is rejected and no error is raised; the value sits on your own key and reaches nobody (SDK companion, gotcha 12).
 
@@ -298,7 +301,7 @@ A capability is not a socket. One declaration can be bound to many peers at once
 
 The mechanism will never resolve disagreement for you (§1.2 rule 4) — it delivers each connection's view faithfully and stops there. Choices taken by working applications: **average, minimum, or maximum** where values are numeric and a summary is meaningful; a **logical OR** where any peer asserting is sufficient, so a light stays lit while anyone is still holding it and tug-of-war is legal by design; a **sum** where contributions accumulate. Choose deliberately and write the choice down, because it *is* your application's semantics.
 
-**Writing: broadcast or address.** Writing to the capability property broadcasts to every connection — for a property flagged `propagate`. Writing to `…/connections/<connId>/properties/<prop>` reaches exactly one peer, which is how a response is returned to whoever asked. Both are available to whichever role owns the property.
+**Writing: broadcast or address.** Writing to the capability property broadcasts to every connection — for a property with `Propagate: yes`. Writing to `…/connections/<connId>/properties/<prop>` reaches exactly one peer, which is how a response is returned to whoever asked. Both are available to whichever role owns the property.
 
 **Show the connections; do not collapse them.** The substrate always knows which peer contributed what, so a UI that renders only the aggregate is discarding information it was handed. The working pattern is one visual token per connection — a pill, a dot, a bead in the peer's colour — carrying that connection's live values, alongside a separate token for the broadcast or aggregate view. When a user asks "but who is doing this?", the answer is already in the data.
 
@@ -331,7 +334,8 @@ If you are doing any of these, go back to §2.
 | Project Arete website | https://projectarete.io |
 | CNS/CP website | https://cnscp.io |
 | CNS/CP specification (incl. licensing) | https://github.com/CNSCP/specification |
-| CP registry | https://cp.padi.io |
+| CP registry | https://cp.cnscp.io |
+| CNS/CP specification (2026) | https://github.com/CNSCP/specification/blob/main/cnscp-2026-specification.md |
 | Widget library (example widgets) | https://github.com/project-arete/widget-library |
 | USPTO Patent No. 12,519,860 | https://patents.google.com/patent/US12519860B2/en |
 
