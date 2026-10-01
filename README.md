@@ -32,9 +32,9 @@ Point your application at an orchestrator. [Arete Hosting](https://aretehosting.
 gives you your own in a few clicks — free right now — or use the public test realm
 at `wss://dashboard.test.cns.dev:443`.
 
-Connection Profiles are governed centrally in the [CP registry](https://cp.padi.io).
+Connection Profiles are governed centrally in the [CP registry](https://cp.cnscp.io).
 Resolve a profile there — for example
-[`padi.light`](https://cp.padi.io/profiles/padi.light) — before declaring a provider
+[`padi.light`](https://cp.cnscp.io/padi.light:1) — before declaring a provider
 or consumer for it.
 
 ## Learn more
